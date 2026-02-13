@@ -7,6 +7,7 @@ import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -66,7 +67,7 @@ fun DialStartButton(
             .background(if (running) Color(0xFF2E7D32) else Color(0xFF333333))
             .graphicsLayer { rotationZ = rotation.value }
             .onSizeChanged { size = it }
-            .pointerInput(running){
+            .pointerInput(running) {
                 if (running) return@pointerInput
 
                 awaitEachGesture {
@@ -85,12 +86,18 @@ fun DialStartButton(
                         val delta = smallestAngleDeltaDeg(lastAngle, currentAngle)
                         lastAngle = currentAngle
 
-                        Log.d("calculate res-1", "delta = $delta, rotation.value = ${rotation.value}")
+                        Log.d(
+                            "calculate res-1", "delta = $delta, rotation.value = ${rotation.value}"
+                        )
 
                         // 1. 즉시 대입으로 시각적 피드백 제공
                         scope.launch {
-                            val newRotation = delta + rotation.value        // 스레드와 코루틴 이름을 확인하기 위한 로그
-                            Log.d("calculate res-1", "delta = $delta, rotation.value = ${rotation.value}, newRotation = $newRotation")
+                            val newRotation =
+                                delta + rotation.value        // 스레드와 코루틴 이름을 확인하기 위한 로그
+                            Log.d(
+                                "calculate res-1",
+                                "delta = $delta, rotation.value = ${rotation.value}, newRotation = $newRotation"
+                            )
                             rotation.snapTo(newRotation)
                         }
 
@@ -440,21 +447,79 @@ fun DialStartButton_Inertia(
 
 
 @Composable
-fun DialStartScreen(timerViewModel: TimerViewModel = viewModel()) {
+fun DialStartScreen(modifier: Modifier = Modifier,
+                    timerViewModel: TimerViewModel = viewModel()) {
     // 1. ViewModel 상태 수집 (StateFlow를 Compose State로 변환)
     val isRunning by timerViewModel.isTimerRunning.collectAsState()
     val timeLeft by timerViewModel.timeLeft.collectAsState()
 
-    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            // 타이머가 시작되지 않았을 때 다이얼 표시
-            DialStartButton_Ritual(
-                onStart = { timerViewModel.startTimer() }
-            )
-            Spacer(modifier = Modifier.height(30.dp))
-            // 타이머 실행 중일 때 표시할 UI
-            TimerDisplay(timeLeft = timeLeft)
+    Column(modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // 타이머가 시작되지 않았을 때 다이얼 표시
+        DialStartButton_Ritual(
+            onStart = { timerViewModel.startTimer() })
+        Spacer(modifier = Modifier.height(30.dp))
+        // 타이머 실행 중일 때 표시할 UI
+        TimerDisplay(timeLeft = timeLeft)
     }
 }
+
+//@Composable
+//fun DialStartScreen(modifier: Modifier = Modifier) {
+//    // 1. 분과 초를 각각 저장할 Int 타입의 상태 변수를 만듭니다.
+//    var selectedMinute by remember { mutableIntStateOf(5) } // 초기값 5분
+//    var selectedSecond by remember { mutableIntStateOf(0) } // 초기값 0초
+//
+//    Column(
+//        modifier = modifier,
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Text(
+//            text = "Set Your Ritual Duration",
+//            style = MaterialTheme.typography.headlineMedium
+//        )
+//
+//        Spacer(modifier = Modifier.height(32.dp))
+//
+//        // 2. WheelNumberPicker 두 개를 사용하여 분/초 선택기를 만듭니다.
+//        Row(
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            // [분 선택기]
+//            WheelNumberPicker(
+//                startIndex = selectedMinute, // 시작 인덱스
+//                count = 91, // 보여줄 숫자의 개수 (0부터 90까지, 총 91개)
+//                onSnappedIndex = { snappedIndex ->
+//                    selectedMinute = snappedIndex // 선택된 인덱스(값)를 상태에 저장
+//                }
+//            )
+//            Text("분", style = MaterialTheme.typography.titleLarge)
+//
+//            Spacer(modifier = Modifier.width(16.dp))
+//
+//            // [초 선택기]
+//            WheelNumberPicker(
+//                startIndex = selectedSecond,
+//                count = 60, // 0부터 59까지, 총 60개
+//                onSnappedIndex = { snappedIndex ->
+//                    selectedSecond = snappedIndex
+//                }
+//            )
+//            Text("초", style = MaterialTheme.typography.titleLarge)
+//        }
+//
+//        Spacer(modifier = Modifier.height(32.dp))
+//
+//        // 3. 선택된 분과 초를 조합하여 텍스트로 보여줍니다.
+//        Text(
+//            text = "Duration: ${selectedMinute}분 ${selectedSecond}초",
+//            style = MaterialTheme.typography.titleLarge
+//        )
+//    }
+//}
 
 @Composable
 fun TimerDisplay(timeLeft: Int) {
