@@ -1,4 +1,4 @@
-
+package com.example.mindpath
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -27,8 +27,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.example.mindpath.angleDeg
-import com.example.mindpath.smallestAngleDeltaDeg
 import kotlin.math.abs
 
 // ... (상단 import 생략)

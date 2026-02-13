@@ -1,6 +1,5 @@
 package com.example.mindpath
 
-import DialStartButton_Ritual
 import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.exponentialDecay
@@ -453,13 +452,13 @@ fun DialStartScreen(modifier: Modifier = Modifier,
     val isRunning by timerViewModel.isTimerRunning.collectAsState()
     val timeLeft by timerViewModel.timeLeft.collectAsState()
 
-    Column(modifier = modifier.fillMaxSize(),
+    Column(
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         // 타이머가 시작되지 않았을 때 다이얼 표시
-        DialStartButton_Ritual(
-            onStart = { timerViewModel.startTimer() })
+        DialStartButton_Ritual { timerViewModel.startTimer() }
         Spacer(modifier = Modifier.height(30.dp))
         // 타이머 실행 중일 때 표시할 UI
         TimerDisplay(timeLeft = timeLeft)

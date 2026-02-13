@@ -40,9 +40,4 @@ class TimerViewModel : ViewModel() {
         _timeLeft.value = 60
         _isTimerRunning.value = false
     }
-
-    override fun onCleared() {
-        super.onCleared()
-        timerJob?.cancel() // ViewModel 파괴 시 코루틴 정리
-    }
 }
