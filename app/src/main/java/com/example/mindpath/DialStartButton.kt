@@ -458,67 +458,69 @@ fun DialStartScreen(modifier: Modifier = Modifier,
         verticalArrangement = Arrangement.Center
     ) {
         // 타이머가 시작되지 않았을 때 다이얼 표시
-        DialStartButton_Ritual { timerViewModel.startTimer() }
+        DialStartButton_Ritual (durationSeconds = timeLeft){ timerViewModel.startTimer() }
         Spacer(modifier = Modifier.height(30.dp))
         // 타이머 실행 중일 때 표시할 UI
         TimerDisplay(timeLeft = timeLeft)
     }
 }
 
-//@Composable
-//fun DialStartScreen(modifier: Modifier = Modifier) {
-//    // 1. 분과 초를 각각 저장할 Int 타입의 상태 변수를 만듭니다.
-//    var selectedMinute by remember { mutableIntStateOf(5) } // 초기값 5분
-//    var selectedSecond by remember { mutableIntStateOf(0) } // 초기값 0초
-//
-//    Column(
-//        modifier = modifier,
-//        verticalArrangement = Arrangement.Center,
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        Text(
-//            text = "Set Your Ritual Duration",
-//            style = MaterialTheme.typography.headlineMedium
-//        )
-//
-//        Spacer(modifier = Modifier.height(32.dp))
-//
-//        // 2. WheelNumberPicker 두 개를 사용하여 분/초 선택기를 만듭니다.
-//        Row(
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            // [분 선택기]
-//            WheelNumberPicker(
-//                startIndex = selectedMinute, // 시작 인덱스
-//                count = 91, // 보여줄 숫자의 개수 (0부터 90까지, 총 91개)
-//                onSnappedIndex = { snappedIndex ->
-//                    selectedMinute = snappedIndex // 선택된 인덱스(값)를 상태에 저장
-//                }
-//            )
-//            Text("분", style = MaterialTheme.typography.titleLarge)
-//
-//            Spacer(modifier = Modifier.width(16.dp))
-//
-//            // [초 선택기]
-//            WheelNumberPicker(
-//                startIndex = selectedSecond,
-//                count = 60, // 0부터 59까지, 총 60개
-//                onSnappedIndex = { snappedIndex ->
-//                    selectedSecond = snappedIndex
-//                }
-//            )
-//            Text("초", style = MaterialTheme.typography.titleLarge)
-//        }
-//
-//        Spacer(modifier = Modifier.height(32.dp))
-//
-//        // 3. 선택된 분과 초를 조합하여 텍스트로 보여줍니다.
-//        Text(
-//            text = "Duration: ${selectedMinute}분 ${selectedSecond}초",
-//            style = MaterialTheme.typography.titleLarge
-//        )
-//    }
-//}
+/*
+@Composable
+fun DialStartScreen(modifier: Modifier = Modifier) {
+    // 1. 분과 초를 각각 저장할 Int 타입의 상태 변수를 만듭니다.
+    var selectedMinute by remember { mutableIntStateOf(5) } // 초기값 5분
+    var selectedSecond by remember { mutableIntStateOf(0) } // 초기값 0초
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Set Your Ritual Duration",
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // 2. WheelNumberPicker 두 개를 사용하여 분/초 선택기를 만듭니다.
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // [분 선택기]
+            WheelNumberPicker(
+                startIndex = selectedMinute, // 시작 인덱스
+                count = 91, // 보여줄 숫자의 개수 (0부터 90까지, 총 91개)
+                onSnappedIndex = { snappedIndex ->
+                    selectedMinute = snappedIndex // 선택된 인덱스(값)를 상태에 저장
+                }
+            )
+            Text("분", style = MaterialTheme.typography.titleLarge)
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // [초 선택기]
+            WheelNumberPicker(
+                startIndex = selectedSecond,
+                count = 60, // 0부터 59까지, 총 60개
+                onSnappedIndex = { snappedIndex ->
+                    selectedSecond = snappedIndex
+                }
+            )
+            Text("초", style = MaterialTheme.typography.titleLarge)
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // 3. 선택된 분과 초를 조합하여 텍스트로 보여줍니다.
+        Text(
+            text = "Duration: ${selectedMinute}분 ${selectedSecond}초",
+            style = MaterialTheme.typography.titleLarge
+        )
+    }
+}
+*/
 
 @Composable
 fun TimerDisplay(timeLeft: Int) {

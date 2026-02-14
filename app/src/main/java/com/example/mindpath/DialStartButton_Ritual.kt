@@ -1,4 +1,9 @@
 package com.example.mindpath
+
+import android.util.Log
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -27,16 +32,16 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.example.mindpath.ui.theme.Purple80
 import kotlin.math.abs
-
-// ... (상단 import 생략)
 
 private data class Particle(val position: Offset, val createdAt: Long)
 
 @Composable
 fun DialStartButton_Ritual(
     modifier: Modifier = Modifier,
-    startThresholdDegrees: Float = 300f,
+    startThresholdDegrees: Float = 360f,
+    durationSeconds: Int,
     onStart: () -> Unit
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
@@ -45,6 +50,8 @@ fun DialStartButton_Ritual(
 
     // 손가락 위치 잔상을 위한 리스트
     val particles = remember { mutableStateListOf<Particle>() }
+    val sweepAngle = remember { Animatable(0f) }
+
 
     // 애니메이션 루프: 오래된 잔상 제거
     LaunchedEffect(Unit) {
@@ -88,11 +95,13 @@ fun DialStartButton_Ritual(
 
                             if (abs(delta) < 60f) {
                                 accumulatedRotation += delta
-
+                                Log.d("data", "accumulatedRotation: $accumulatedRotation, delta: $delta")
                                 // ✅ 손가락 현재 위치에 잔상 추가
                                 particles.add(Particle(currentPos, System.currentTimeMillis()))
 
                                 if (abs(accumulatedRotation) >= startThresholdDegrees) {
+                                    Log.d("data", "accumulatedRotation: $accumulatedRotation, delta: $delta")
+                                    Log.d("success", "success")
                                     running = true
                                     onStart()
                                     break
@@ -107,35 +116,45 @@ fun DialStartButton_Ritual(
         contentAlignment = Alignment.Center
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val strokeWidth = 12f
             val startAngleOffset = -90f
 
             // 1. 배경 원
             drawCircle(color = if (running) Color(0xFF444444) else Color(0xFF1A1A1A))
 
-            // 2. 진행 상황 테두리 (Arc)
-            drawArc(
-                color = Color.White.copy(alpha = 0.3f),
-                startAngle = startAngleOffset,
-                sweepAngle = accumulatedRotation,
-                useCenter = false,
-                style = Stroke(width = strokeWidth)
-            )
-
-            // 3. 손가락 끝 잔상(Particles) 그리기
-            val now = System.currentTimeMillis()
-            particles.forEach { particle ->
-                val age = (now - particle.createdAt).coerceAtLeast(0)
-                val alpha = (1f - age / 600f).coerceIn(0f, 1f)
-                val lifeRatio = (1f - age / 600f).coerceIn(0f, 1f)
-
-                // 빛나는 효과를 위해 BlendMode.Plus 사용 (선택 사항)
-                drawCircle(
-                    color = Color(0xFFBBBBBB).copy(alpha = lifeRatio * 0.7f),
-                    radius = 15f * alpha, // 시간이 지날수록 크기가 줄어듦
-                    center = particle.position,
-                    blendMode = BlendMode.Screen
+            if (running) {
+                // 시간이 흐를 때 빨간색 부채꼴 그리기
+                drawArc(
+                    color = Color.Red,
+                    startAngle = startAngleOffset,
+                    sweepAngle = sweepAngle.value,
+                    useCenter = true
                 )
+            } else {
+                // 2. 진행 상황 테두리 (Arc)
+                val strokeWidth = 50f
+                drawArc(
+                    color = Purple80.copy(alpha = 1f),
+                    startAngle = startAngleOffset,
+                    sweepAngle = accumulatedRotation,
+                    useCenter = false,
+                    style = Stroke(width = strokeWidth)
+                )
+
+                // 3. 손가락 끝 잔상(Particles) 그리기
+                val now = System.currentTimeMillis()
+                particles.forEach { particle ->
+                    val age = (now - particle.createdAt).coerceAtLeast(0)
+                    val alpha = (1f - age / 600f).coerceIn(0f, 1f)
+                    val lifeRatio = (1f - age / 600f).coerceIn(0f, 1f)
+
+                    // 빛나는 효과를 위해 BlendMode.Plus 사용 (선택 사항)
+                    drawCircle(
+                        color = Color(0xFFBBBBBB).copy(alpha = lifeRatio * 0.7f),
+                        radius = 15f * alpha, // 시간이 지날수록 크기가 줄어듦
+                        center = particle.position,
+                        blendMode = BlendMode.Screen
+                    )
+                }
             }
         }
 
@@ -145,11 +164,17 @@ fun DialStartButton_Ritual(
         )
     }
 
-    // 상태 초기화
+    // 상태 초기화 및 타이머
     LaunchedEffect(running) {
-        if (!running) {
+        if (running) {
+            sweepAngle.animateTo(
+                targetValue = 360f,
+                animationSpec = tween(durationMillis = durationSeconds * 1000, easing = LinearEasing)
+            )
+        } else {
             accumulatedRotation = 0f
             particles.clear()
+            sweepAngle.snapTo(0f)
         }
     }
 }
