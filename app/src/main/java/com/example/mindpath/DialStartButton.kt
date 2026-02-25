@@ -9,13 +9,25 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,6 +50,7 @@ import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -445,12 +458,14 @@ fun DialStartButton_Inertia(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DialStartScreen(modifier: Modifier = Modifier,
                     timerViewModel: TimerViewModel = viewModel()) {
     // 1. ViewModel 상태 수집 (StateFlow를 Compose State로 변환)
     val isRunning by timerViewModel.isTimerRunning.collectAsState()
     val timeLeft by timerViewModel.timeLeft.collectAsState()
+    var openDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -462,65 +477,49 @@ fun DialStartScreen(modifier: Modifier = Modifier,
         Spacer(modifier = Modifier.height(30.dp))
         // 타이머 실행 중일 때 표시할 UI
         TimerDisplay(timeLeft = timeLeft)
-    }
-}
+        Spacer(modifier = Modifier.height(20.dp))
+        Row {
+            Spacer(modifier = Modifier.width(100.dp))
+            Button(
+                onClick = { openDialog = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF41C3E7),  // 부드러운 파란색 (거의 흰색) - 시간 창
+                    contentColor = Color(0xFFFFFFFF) // 순수한 흰색 - Text, Surface, Background
+                ),
+            ) {
+                Text(fontSize= 20.sp, text = "시간 선택")
+            }
 
-/*
-@Composable
-fun DialStartScreen(modifier: Modifier = Modifier) {
-    // 1. 분과 초를 각각 저장할 Int 타입의 상태 변수를 만듭니다.
-    var selectedMinute by remember { mutableIntStateOf(5) } // 초기값 5분
-    var selectedSecond by remember { mutableIntStateOf(0) } // 초기값 0초
-
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Set Your Ritual Duration",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 2. WheelNumberPicker 두 개를 사용하여 분/초 선택기를 만듭니다.
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // [분 선택기]
-            WheelNumberPicker(
-                startIndex = selectedMinute, // 시작 인덱스
-                count = 91, // 보여줄 숫자의 개수 (0부터 90까지, 총 91개)
-                onSnappedIndex = { snappedIndex ->
-                    selectedMinute = snappedIndex // 선택된 인덱스(값)를 상태에 저장
-                }
-            )
-            Text("분", style = MaterialTheme.typography.titleLarge)
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // [초 선택기]
-            WheelNumberPicker(
-                startIndex = selectedSecond,
-                count = 60, // 0부터 59까지, 총 60개
-                onSnappedIndex = { snappedIndex ->
-                    selectedSecond = snappedIndex
-                }
-            )
-            Text("초", style = MaterialTheme.typography.titleLarge)
         }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 3. 선택된 분과 초를 조합하여 텍스트로 보여줍니다.
-        Text(
-            text = "Duration: ${selectedMinute}분 ${selectedSecond}초",
-            style = MaterialTheme.typography.titleLarge
-        )
+        if (openDialog) {
+            BasicAlertDialog(
+                onDismissRequest = {
+                    // Dismiss the dialog when the user clicks outside the dialog or on the back
+                    // button. If you want to disable that functionality, simply use an empty
+                    // onDismissRequest.
+                    openDialog = false
+                }
+            ) {
+                Surface(
+                    modifier = Modifier.wrapContentWidth().wrapContentHeight(),
+                    shape = MaterialTheme.shapes.large,
+                    tonalElevation = AlertDialogDefaults.TonalElevation
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        PickHourMinuteSecondFun()
+                        Spacer(modifier = Modifier.height(24.dp))
+                        TextButton(
+                            onClick = { openDialog = false },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text("Confirm")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
-*/
 
 @Composable
 fun TimerDisplay(timeLeft: Int) {
