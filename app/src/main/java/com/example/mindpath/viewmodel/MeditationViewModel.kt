@@ -1,12 +1,14 @@
-package com.example.mindpath
+package com.example.mindpath.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.example.mindpath.local.DistractionRecord
+import com.example.mindpath.local.MeditationRepository
+import com.example.mindpath.local.MeditationSession
+import com.example.mindpath.MyApplication
 import kotlinx.coroutines.launch
-
 
 class MeditationViewModel(private val repository: MeditationRepository) : ViewModel() {
     private var startTime: Long = 0
@@ -31,7 +33,7 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
                 endTime = endTime,
                 feelingRecord = feeling
             )
-            
+
             // repository를 통해 세션을 저장하고 생성된 ID를 받아옴
             // (UserRepository에 meditation 관련 메서드가 추가되어야 함)
             val sessionId = repository.insertMeditationSession(session)
@@ -43,7 +45,7 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
                     touchedTime = time
                 )
             }
-            
+
             // 생성된 모든 터치 기록을 저장
             repository.insertDistractionRecords(distractionRecords)
         }
@@ -57,7 +59,7 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
                 modelClass: Class<T>,
                 extras: CreationExtras
             ): T {
-                val application = checkNotNull(extras[APPLICATION_KEY])
+                val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY])
                 val repository = (application as MyApplication).repository
                 return MeditationViewModel(repository) as T
             }

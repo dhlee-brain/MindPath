@@ -1,4 +1,4 @@
-package com.example.mindpath
+package com.example.mindpath.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape

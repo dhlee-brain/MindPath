@@ -1,4 +1,4 @@
-package com.example.mindpath
+package com.example.mindpath.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel

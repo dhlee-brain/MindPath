@@ -1,4 +1,4 @@
-package com.example.mindpath
+package com.example.mindpath.local
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
             entity = MeditationSession::class,
             parentColumns = ["id"],
             childColumns = ["sessionId"],
-            onDelete = ForeignKey.CASCADE // 세션 삭제 시 터치 기록도 삭제
+            onDelete = ForeignKey.Companion.CASCADE // 세션 삭제 시 터치 기록도 삭제
         )
     ]
 )

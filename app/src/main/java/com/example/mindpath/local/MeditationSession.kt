@@ -1,4 +1,4 @@
-package com.example.mindpath
+package com.example.mindpath.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

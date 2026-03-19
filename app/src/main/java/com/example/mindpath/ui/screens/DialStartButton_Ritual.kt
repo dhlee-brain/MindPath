@@ -1,4 +1,4 @@
-package com.example.mindpath
+package com.example.mindpath.ui.screens
 
 import android.util.Log
 import androidx.compose.animation.core.Animatable
@@ -32,6 +32,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.example.mindpath.ui.components.angleDeg
+import com.example.mindpath.ui.components.smallestAngleDeltaDeg
 import com.example.mindpath.ui.theme.Purple80
 import kotlin.math.abs
 

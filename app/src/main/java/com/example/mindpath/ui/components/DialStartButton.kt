@@ -1,4 +1,4 @@
-package com.example.mindpath
+package com.example.mindpath.ui.components
 
 import android.util.Log
 import androidx.compose.animation.core.Animatable
@@ -31,12 +31,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +50,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mindpath.ui.screens.DialStartButton_Ritual
+import com.example.mindpath.viewmodel.TimerViewModel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -59,11 +59,11 @@ import kotlin.math.atan2
 
 @Composable
 fun DialStartButton(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.Companion,
     startThresholdDegrees: Float = 360f,
     onStart: ()-> Unit
 ){
-    var size by remember { mutableStateOf(IntSize.Zero) }
+    var size by remember { mutableStateOf(IntSize.Companion.Zero) }
     val rotation = remember { Animatable(0f) }
     var running by remember { mutableStateOf(false) }
 
@@ -123,15 +123,15 @@ fun DialStartButton(
                             break
                         }
 
-                        if (change.positionChange() != Offset.Zero) change.consume()
+                        if (change.positionChange() != Offset.Companion.Zero) change.consume()
                     }
                 }
             },
-        contentAlignment = Alignment.Center
-    ){
+        contentAlignment = Alignment.Companion.Center
+    ) {
         Text(
             text = if (running) "RUNNING" else "ROTATE TO START",
-            color = Color.White
+            color = Color.Companion.White
         )
     }
 
@@ -145,11 +145,11 @@ fun DialStartButton(
 
 @Composable
 fun DialStartButton_mutableFloatStateOfVersion(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.Companion,
     startThresholdDegrees: Float = 300f,
     onStart: () -> Unit
 ) {
-    var size by remember { mutableStateOf(IntSize.Zero) }
+    var size by remember { mutableStateOf(IntSize.Companion.Zero) }
     // 시각적 회전을 위한 상태 (0~360도에 갇히지 않고 계속 증가/감소 가능)
     var rotationValue by remember { mutableFloatStateOf(0f) }
     var running by remember { mutableStateOf(false) }
@@ -197,15 +197,15 @@ fun DialStartButton_mutableFloatStateOfVersion(
                             break
                         }
 
-                        if (change.positionChange() != Offset.Zero) change.consume()
+                        if (change.positionChange() != Offset.Companion.Zero) change.consume()
                     }
                 }
             },
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Companion.Center
     ) {
         Text(
             text = if (running) "RUNNING" else "SPIN 300° TO START",
-            color = Color.White
+            color = Color.Companion.White
         )
     }
 
@@ -221,11 +221,11 @@ fun DialStartButton_mutableFloatStateOfVersion(
 
 @Composable
 fun DialStartButton_ProVersion(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.Companion,
     startThresholdDegrees: Float = 300f,
     onStart: () -> Unit
 ) {
-    var size by remember { mutableStateOf(IntSize.Zero) }
+    var size by remember { mutableStateOf(IntSize.Companion.Zero) }
     var rotationValue by remember { mutableFloatStateOf(0f) }
     var running by remember { mutableStateOf(false) }
     var accumulatedRotation by remember { mutableFloatStateOf(0f) }
@@ -283,7 +283,7 @@ fun DialStartButton_ProVersion(
                     }
                 }
             },
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Companion.Center
     ) {
         Text(text = if (running) "RUNNING" else "PERFECT SMOOTH")
     }
@@ -291,11 +291,11 @@ fun DialStartButton_ProVersion(
 
 @Composable
 fun DialStartButton_Ultimate(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.Companion,
     startThresholdDegrees: Float = 300f,
     onStart: () -> Unit
 ) {
-    var size by remember { mutableStateOf(IntSize.Zero) }
+    var size by remember { mutableStateOf(IntSize.Companion.Zero) }
     var rotationValue by remember { mutableFloatStateOf(0f) }
     var running by remember { mutableStateOf(false) }
     var accumulatedRotation by remember { mutableFloatStateOf(0f) }
@@ -366,7 +366,7 @@ fun DialStartButton_Ultimate(
                     }
                 }
             },
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Companion.Center
     ) {
         Text(text = if (running) "RUNNING" else "SILKY SMOOTH")
     }
@@ -374,11 +374,11 @@ fun DialStartButton_Ultimate(
 
 @Composable
 fun DialStartButton_Inertia(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.Companion,
     startThresholdDegrees: Float = 300f,
     onStart: () -> Unit
 ) {
-    var size by remember { mutableStateOf(IntSize.Zero) }
+    var size by remember { mutableStateOf(IntSize.Companion.Zero) }
     var running by remember { mutableStateOf(false) }
 
     // 실제 다이얼의 각도 (물리 효과를 위해 Animatable 사용)
@@ -451,7 +451,7 @@ fun DialStartButton_Inertia(
                     }
                 }
             },
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Companion.Center
     ) {
         Text(text = if (running) "RUNNING" else "FLICK ME!")
     }
@@ -460,8 +460,9 @@ fun DialStartButton_Inertia(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DialStartScreen(modifier: Modifier = Modifier,
-                    timerViewModel: TimerViewModel = viewModel()) {
+fun DialStartScreen(modifier: Modifier = Modifier.Companion,
+                    timerViewModel: TimerViewModel = viewModel()
+) {
     // 1. ViewModel 상태 수집 (StateFlow를 Compose State로 변환)
     val isRunning by timerViewModel.isTimerRunning.collectAsState()
     val timeLeft by timerViewModel.timeLeft.collectAsState()
@@ -469,17 +470,17 @@ fun DialStartScreen(modifier: Modifier = Modifier,
 
     Column(
         modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Companion.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         // 타이머가 시작되지 않았을 때 다이얼 표시
-        DialStartButton_Ritual (durationSeconds = timeLeft){ timerViewModel.startTimer() }
-        Spacer(modifier = Modifier.height(30.dp))
+        DialStartButton_Ritual(durationSeconds = timeLeft) { timerViewModel.startTimer() }
+        Spacer(modifier = Modifier.Companion.height(30.dp))
         // 타이머 실행 중일 때 표시할 UI
         TimerDisplay(timeLeft = timeLeft)
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.Companion.height(20.dp))
         Row {
-            Spacer(modifier = Modifier.width(100.dp))
+            Spacer(modifier = Modifier.Companion.width(100.dp))
             Button(
                 onClick = { openDialog = true },
                 colors = ButtonDefaults.buttonColors(
@@ -487,7 +488,7 @@ fun DialStartScreen(modifier: Modifier = Modifier,
                     contentColor = Color(0xFFFFFFFF) // 순수한 흰색 - Text, Surface, Background
                 ),
             ) {
-                Text(fontSize= 20.sp, text = "시간 선택")
+                Text(fontSize = 20.sp, text = "시간 선택")
             }
 
         }
@@ -501,16 +502,16 @@ fun DialStartScreen(modifier: Modifier = Modifier,
                 }
             ) {
                 Surface(
-                    modifier = Modifier.wrapContentWidth().wrapContentHeight(),
+                    modifier = Modifier.Companion.wrapContentWidth().wrapContentHeight(),
                     shape = MaterialTheme.shapes.large,
                     tonalElevation = AlertDialogDefaults.TonalElevation
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.Companion.padding(16.dp)) {
                         PickHourMinuteSecondFun()
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.Companion.height(24.dp))
                         TextButton(
                             onClick = { openDialog = false },
-                            modifier = Modifier.align(Alignment.End)
+                            modifier = Modifier.Companion.align(Alignment.Companion.End)
                         ) {
                             Text("Confirm")
                         }
@@ -523,13 +524,13 @@ fun DialStartScreen(modifier: Modifier = Modifier,
 
 @Composable
 fun TimerDisplay(timeLeft: Int) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(horizontalAlignment = Alignment.Companion.CenterHorizontally) {
         Text(
             text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
             style = MaterialTheme.typography.displayLarge,
-            color = Color.DarkGray
+            color = Color.Companion.DarkGray
         )
-        Text(text = "Focusing...", color = Color.Gray)
+        Text(text = "Focusing...", color = Color.Companion.Gray)
     }
 }
 

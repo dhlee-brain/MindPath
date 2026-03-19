@@ -1,4 +1,4 @@
-package com.example.mindpath
+package com.example.mindpath.local
 
 import androidx.room.Dao
 import androidx.room.Insert

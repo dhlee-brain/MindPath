@@ -1,4 +1,6 @@
-package com.example.mindpath
+package com.example.mindpath.local
+
+import com.example.mindpath.local.MeditationDao
 
 class MeditationRepository(private val meditationDao: MeditationDao) {
     suspend fun insertMeditationSession(session: MeditationSession): Long {
