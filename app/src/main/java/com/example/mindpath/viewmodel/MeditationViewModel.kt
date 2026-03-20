@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import com.example.mindpath.local.DistractionRecord
+import com.example.mindpath.local.TouchRecordEntity
 import com.example.mindpath.local.MeditationRepository
-import com.example.mindpath.local.MeditationSession
+import com.example.mindpath.local.MeditationSessionEntity
 import com.example.mindpath.MyApplication
 import kotlinx.coroutines.launch
 
@@ -28,7 +28,7 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
 
         viewModelScope.launch {
             // 1. 세션 엔티티 생성 및 저장
-            val session = MeditationSession(
+            val session = MeditationSessionEntity(
                 startTime = startTime,
                 endTime = endTime,
                 feelingRecord = feeling
@@ -40,14 +40,14 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
 
             // 2. 터치 기록(DistractionRecord) 생성 및 저장
             val distractionRecords = touchRecords.map { time ->
-                DistractionRecord(
+                TouchRecordEntity(
                     sessionId = sessionId,
                     touchedTime = time
                 )
             }
 
             // 생성된 모든 터치 기록을 저장
-            repository.insertDistractionRecords(distractionRecords)
+            repository.insertTouchRecords(distractionRecords)
         }
     }
 

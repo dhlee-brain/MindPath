@@ -7,14 +7,14 @@ import androidx.room.Query
 @Dao
 interface MeditationDao {
     @Insert
-    suspend fun insertMeditationSession(session: MeditationSession): Long
+    suspend fun insertMeditationSession(session: MeditationSessionEntity): Long
 
     @Insert
-    suspend fun insertDistractionRecords(records: List<DistractionRecord>)
+    suspend fun insertDistractionRecords(records: List<TouchRecordEntity>)
 
     @Query("SELECT * FROM meditation_sessions ORDER BY startTime DESC")
-    suspend fun getAllSessions(): List<MeditationSession>
+    suspend fun getAllSessions(): List<MeditationSessionEntity>
 
-    @Query("SELECT * FROM distraction_records WHERE sessionId = :sessionId")
-    suspend fun getDistractionRecordsForSession(sessionId: Long): List<DistractionRecord>
+    @Query("SELECT * FROM touch_records WHERE sessionId = :sessionId")
+    suspend fun getTouchRecordsForSession(sessionId: Long): List<TouchRecordEntity>
 }

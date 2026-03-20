@@ -31,10 +31,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,11 +61,11 @@ import kotlin.math.atan2
 
 @Composable
 fun DialStartButton(
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     startThresholdDegrees: Float = 360f,
     onStart: ()-> Unit
 ){
-    var size by remember { mutableStateOf(IntSize.Companion.Zero) }
+    var size by remember { mutableStateOf(IntSize.Zero) }
     val rotation = remember { Animatable(0f) }
     var running by remember { mutableStateOf(false) }
 
@@ -145,7 +147,7 @@ fun DialStartButton(
 
 @Composable
 fun DialStartButton_mutableFloatStateOfVersion(
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     startThresholdDegrees: Float = 300f,
     onStart: () -> Unit
 ) {
@@ -201,7 +203,7 @@ fun DialStartButton_mutableFloatStateOfVersion(
                     }
                 }
             },
-        contentAlignment = Alignment.Companion.Center
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = if (running) "RUNNING" else "SPIN 300° TO START",
@@ -221,11 +223,11 @@ fun DialStartButton_mutableFloatStateOfVersion(
 
 @Composable
 fun DialStartButton_ProVersion(
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     startThresholdDegrees: Float = 300f,
     onStart: () -> Unit
 ) {
-    var size by remember { mutableStateOf(IntSize.Companion.Zero) }
+    var size by remember { mutableStateOf(IntSize.Zero) }
     var rotationValue by remember { mutableFloatStateOf(0f) }
     var running by remember { mutableStateOf(false) }
     var accumulatedRotation by remember { mutableFloatStateOf(0f) }
@@ -283,7 +285,7 @@ fun DialStartButton_ProVersion(
                     }
                 }
             },
-        contentAlignment = Alignment.Companion.Center
+        contentAlignment = Alignment.Center
     ) {
         Text(text = if (running) "RUNNING" else "PERFECT SMOOTH")
     }
@@ -291,7 +293,7 @@ fun DialStartButton_ProVersion(
 
 @Composable
 fun DialStartButton_Ultimate(
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     startThresholdDegrees: Float = 300f,
     onStart: () -> Unit
 ) {
@@ -374,7 +376,7 @@ fun DialStartButton_Ultimate(
 
 @Composable
 fun DialStartButton_Inertia(
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     startThresholdDegrees: Float = 300f,
     onStart: () -> Unit
 ) {
@@ -460,8 +462,9 @@ fun DialStartButton_Inertia(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DialStartScreen(modifier: Modifier = Modifier.Companion,
-                    timerViewModel: TimerViewModel = viewModel()
+fun DialStartScreen(
+    modifier: Modifier = Modifier,
+    timerViewModel: TimerViewModel = viewModel()
 ) {
     // 1. ViewModel 상태 수집 (StateFlow를 Compose State로 변환)
     val isRunning by timerViewModel.isTimerRunning.collectAsState()
@@ -470,17 +473,17 @@ fun DialStartScreen(modifier: Modifier = Modifier.Companion,
 
     Column(
         modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.Companion.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         // 타이머가 시작되지 않았을 때 다이얼 표시
         DialStartButton_Ritual(durationSeconds = timeLeft) { timerViewModel.startTimer() }
-        Spacer(modifier = Modifier.Companion.height(30.dp))
+        Spacer(modifier = Modifier.height(30.dp))
         // 타이머 실행 중일 때 표시할 UI
         TimerDisplay(timeLeft = timeLeft)
-        Spacer(modifier = Modifier.Companion.height(20.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Row {
-            Spacer(modifier = Modifier.Companion.width(100.dp))
+            Spacer(modifier = Modifier.width(100.dp))
             Button(
                 onClick = { openDialog = true },
                 colors = ButtonDefaults.buttonColors(
@@ -502,16 +505,16 @@ fun DialStartScreen(modifier: Modifier = Modifier.Companion,
                 }
             ) {
                 Surface(
-                    modifier = Modifier.Companion.wrapContentWidth().wrapContentHeight(),
+                    modifier = Modifier.wrapContentWidth().wrapContentHeight(),
                     shape = MaterialTheme.shapes.large,
                     tonalElevation = AlertDialogDefaults.TonalElevation
                 ) {
-                    Column(modifier = Modifier.Companion.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         PickHourMinuteSecondFun()
-                        Spacer(modifier = Modifier.Companion.height(24.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
                         TextButton(
                             onClick = { openDialog = false },
-                            modifier = Modifier.Companion.align(Alignment.Companion.End)
+                            modifier = Modifier.align(Alignment.End)
                         ) {
                             Text("Confirm")
                         }

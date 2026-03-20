@@ -4,11 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.mindpath.local.DistractionRecord
-import com.example.mindpath.local.MeditationDao
-import com.example.mindpath.local.MeditationSession
 
-@Database(entities = [MeditationSession::class, DistractionRecord::class], version = 1)
+@Database(entities = [MeditationSessionEntity::class, TouchRecordEntity::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun meditationDao(): MeditationDao
 
