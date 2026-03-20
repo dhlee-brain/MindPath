@@ -19,17 +19,30 @@ import com.anhaki.picktime.utils.PickTimeFocusIndicator
 import com.anhaki.picktime.utils.PickTimeTextStyle
 
 @Composable
-fun PickHourMinuteSecondFun() {
-    var hour by remember { mutableStateOf(1) }
-    var minute by remember { mutableStateOf(10)}
-    var second by remember { mutableStateOf(15)}
+fun PickHourMinuteSecondFun(
+    initialTotalSeconds: Int = 60,
+    onTimeChange: (Int) -> Unit
+) {
+    var hour by remember { mutableStateOf(initialTotalSeconds / 3600) }
+    var minute by remember { mutableStateOf((initialTotalSeconds % 3600) / 60) }
+    var second by remember { mutableStateOf(initialTotalSeconds % 60) }
+
     PickHourMinuteSecond(
         initialHour = hour,
-        onHourChange = { hour = it },
+        onHourChange = { 
+            hour = it 
+            onTimeChange(hour * 3600 + minute * 60 + second)
+        },
         initialMinute = minute,
-        onMinuteChange = { minute = it },
+        onMinuteChange = { 
+            minute = it 
+            onTimeChange(hour * 3600 + minute * 60 + second)
+        },
         initialSecond = second,
-        onSecondChange = { second = it },
+        onSecondChange = { 
+            second = it 
+            onTimeChange(hour * 3600 + minute * 60 + second)
+        },
         focusIndicator = PickTimeFocusIndicator(
             enabled = true,
             widthFull = true,
@@ -44,8 +57,6 @@ fun PickHourMinuteSecondFun() {
 fun PickHourMinuteFun() {
     var hour by remember { mutableIntStateOf(0) }
     var minute by remember { mutableIntStateOf(0) }
-
-
 
     PickHourMinute(
         initialHour = hour,

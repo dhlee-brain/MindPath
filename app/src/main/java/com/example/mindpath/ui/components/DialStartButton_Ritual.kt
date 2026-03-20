@@ -1,6 +1,5 @@
-package com.example.mindpath.ui.screens
+package com.example.mindpath.ui.components
 
-import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -32,8 +31,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.example.mindpath.ui.components.angleDeg
-import com.example.mindpath.ui.components.smallestAngleDeltaDeg
+import com.example.mindpath.ui.screens.angleDeg
+import com.example.mindpath.ui.screens.smallestAngleDeltaDeg
 import com.example.mindpath.ui.theme.Purple80
 import kotlin.math.abs
 
@@ -44,23 +43,20 @@ fun DialStartButton_Ritual(
     modifier: Modifier = Modifier,
     startThresholdDegrees: Float = 360f,
     durationSeconds: Int,
-    onStart: () -> Unit
+    isRunning: Boolean = false, // 외부 상태 반영
+    onStart: () -> Unit,
+    onTouchDuringRunning: () -> Unit = {} // 실행 중 터치 이벤트
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
-    var running by remember { mutableStateOf(false) }
     var accumulatedRotation by remember { mutableFloatStateOf(0f) }
 
-    // 손가락 위치 잔상을 위한 리스트
     val particles = remember { mutableStateListOf<Particle>() }
     val sweepAngle = remember { Animatable(0f) }
 
-
-    // 애니메이션 루프: 오래된 잔상 제거
     LaunchedEffect(Unit) {
         while (true) {
             withFrameNanos { _ ->
                 val now = System.currentTimeMillis()
-                // 400ms가 지난 잔상은 삭제 (숫자를 줄이면 더 빨리 사라짐)
                 particles.removeAll { (now - it.createdAt) > 400 }
             }
         }
@@ -71,11 +67,16 @@ fun DialStartButton_Ritual(
             .size(220.dp)
             .clip(CircleShape)
             .onSizeChanged { size = it }
-            .pointerInput(running) {
-                if (running) return@pointerInput
-
+            .pointerInput(isRunning) {
                 awaitEachGesture {
                     val down = awaitFirstDown()
+                    
+                    if (isRunning) {
+                        // 실행 중일 때는 터치 시 바로 기록 이벤트 발생
+                        onTouchDuringRunning()
+                        return@awaitEachGesture
+                    }
+
                     val center = Offset(size.width / 2f, size.height / 2f)
                     var lastAngle = angleDeg(down.position - center)
 
@@ -97,14 +98,9 @@ fun DialStartButton_Ritual(
 
                             if (abs(delta) < 60f) {
                                 accumulatedRotation += delta
-                                Log.d("data", "accumulatedRotation: $accumulatedRotation, delta: $delta")
-                                // ✅ 손가락 현재 위치에 잔상 추가
                                 particles.add(Particle(currentPos, System.currentTimeMillis()))
 
                                 if (abs(accumulatedRotation) >= startThresholdDegrees) {
-                                    Log.d("data", "accumulatedRotation: $accumulatedRotation, delta: $delta")
-                                    Log.d("success", "success")
-                                    running = true
                                     onStart()
                                     break
                                 }
@@ -119,12 +115,9 @@ fun DialStartButton_Ritual(
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val startAngleOffset = -90f
+            drawCircle(color = if (isRunning) Color(0xFF444444) else Color(0xFF1A1A1A))
 
-            // 1. 배경 원
-            drawCircle(color = if (running) Color(0xFF444444) else Color(0xFF1A1A1A))
-
-            if (running) {
-                // 시간이 흐를 때 빨간색 부채꼴 그리기
+            if (isRunning) {
                 drawArc(
                     color = Color.Red,
                     startAngle = startAngleOffset,
@@ -132,7 +125,6 @@ fun DialStartButton_Ritual(
                     useCenter = true
                 )
             } else {
-                // 2. 진행 상황 테두리 (Arc)
                 val strokeWidth = 50f
                 drawArc(
                     color = Purple80.copy(alpha = 1f),
@@ -142,17 +134,15 @@ fun DialStartButton_Ritual(
                     style = Stroke(width = strokeWidth)
                 )
 
-                // 3. 손가락 끝 잔상(Particles) 그리기
                 val now = System.currentTimeMillis()
                 particles.forEach { particle ->
                     val age = (now - particle.createdAt).coerceAtLeast(0)
                     val alpha = (1f - age / 600f).coerceIn(0f, 1f)
                     val lifeRatio = (1f - age / 600f).coerceIn(0f, 1f)
 
-                    // 빛나는 효과를 위해 BlendMode.Plus 사용 (선택 사항)
                     drawCircle(
                         color = Color(0xFFBBBBBB).copy(alpha = lifeRatio * 0.7f),
-                        radius = 15f * alpha, // 시간이 지날수록 크기가 줄어듦
+                        radius = 15f * alpha,
                         center = particle.position,
                         blendMode = BlendMode.Screen
                     )
@@ -161,14 +151,13 @@ fun DialStartButton_Ritual(
         }
 
         Text(
-            text = if (running) "RUNNING" else "SPIN TO START",
+            text = if (isRunning) "FOCUSING" else "SPIN TO START",
             color = Color.White
         )
     }
 
-    // 상태 초기화 및 타이머
-    LaunchedEffect(running) {
-        if (running) {
+    LaunchedEffect(isRunning) {
+        if (isRunning) {
             sweepAngle.animateTo(
                 targetValue = 360f,
                 animationSpec = tween(durationMillis = durationSeconds * 1000, easing = LinearEasing)
