@@ -9,6 +9,10 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -19,7 +23,10 @@ fun MyBottomNavigation(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination?.route
 
-    NavigationBar {
+    NavigationBar(
+        modifier = Modifier.shadow(elevation = 8.dp),
+        containerColor = Color.LightGray.copy(alpha = 0.1f)
+    ) {
         // 명상(Meditate) 탭
         NavigationBarItem(
             selected = currentDestination == "meditate",

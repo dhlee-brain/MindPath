@@ -60,9 +60,11 @@ fun DialStartScreen(
             isRunning = isRunning,
             onStart = {
                 meditationViewModel.startMeditation()
-                timerViewModel.startTimer(onFinish = {
-                    meditationViewModel.finishMeditation("Good")
-                })
+                timerViewModel.startTimer(
+                    onFinish = {
+                        meditationViewModel.finishMeditation("Good")
+                    }
+                )
             },
             onTouchDuringRunning = {
                 meditationViewModel.addTouchRecord()
