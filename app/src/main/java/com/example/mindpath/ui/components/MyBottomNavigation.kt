@@ -24,8 +24,8 @@ fun MyBottomNavigation(navController: NavHostController) {
     val currentDestination = navBackStackEntry?.destination?.route
 
     NavigationBar(
-        modifier = Modifier.shadow(elevation = 8.dp),
-        containerColor = Color.LightGray.copy(alpha = 0.1f)
+        modifier = Modifier.shadow(elevation = 30.dp),
+        containerColor = Color.White
     ) {
         // 명상(Meditate) 탭
         NavigationBarItem(

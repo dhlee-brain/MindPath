@@ -49,7 +49,8 @@ fun PickHourMinuteSecondFun(
             background = Color(0xFFE1D8FF),
             shape = RoundedCornerShape(20.dp),
             border = BorderStroke(5.dp, Color(0xFF87CDE6)),
-        )
+        ),
+        isLooping = true
     )
 }
 
@@ -78,7 +79,7 @@ fun PickHourMinuteFun() {
         verticalSpace = 10.dp,
         horizontalSpace = 15.dp,
         containerColor = Color.White,
-        isLooping = false,
+        isLooping = true,
         extraRow = 2,
         focusIndicator = PickTimeFocusIndicator(
             enabled = true,
