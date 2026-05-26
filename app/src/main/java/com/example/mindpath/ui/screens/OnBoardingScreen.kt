@@ -48,7 +48,8 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 Text("또는 잠시 방해받지 않는\n순간을 창조하고 싶을 때가\n있지는 않으신가요?")
             },
             OnboardingPageData(R.drawable.description_image_2) {
-                Text("부정적인 생각이 날 때,")
+                Text("명상 세션을 시작해 보세요.\n")
+                Text("세션 시작 후 - 부정적인 생각이 날 때,")
                 Text("또는 생각에 빠져있다가 알아차렸을 때\n화면을 터치해 보세요.")
                 Text("그와 동시에 다시 호흡으로 돌아와 보세요.")
             },

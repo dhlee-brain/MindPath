@@ -39,7 +39,7 @@ import kotlin.math.abs
 private data class Particle(val position: Offset, val createdAt: Long)
 
 @Composable
-fun DialStartButton_Ritual(
+fun DialStartButton(
     modifier: Modifier = Modifier,
     startThresholdDegrees: Float = 360f,
     durationSeconds: Int,
@@ -151,7 +151,7 @@ fun DialStartButton_Ritual(
         }
 
         Text(
-            text = if (isRunning) "FOCUSING" else "SPIN TO START",
+            text = "360º 회전하여\n명상 시작하기",
             color = Color.White
         )
     }

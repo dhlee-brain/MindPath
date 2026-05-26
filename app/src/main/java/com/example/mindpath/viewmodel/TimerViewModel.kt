@@ -37,6 +37,7 @@ class TimerViewModel : ViewModel() {
                 _timeLeft.value = tick - 1
             }
             _isTimerRunning.value = false
+            _timeLeft.value = totalTicks
             onFinish()
         }
     }
