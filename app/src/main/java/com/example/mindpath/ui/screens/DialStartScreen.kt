@@ -26,6 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +59,7 @@ fun DialStartScreen(
     val timeLeft by timerViewModel.timeLeft.collectAsState()
     var openDialog by remember { mutableStateOf(false) }
 
+
     // 1. Box를 최상위 레이아웃으로 사용하여 겹치기 및 절대 위치 지정 허용
     Box(modifier = modifier.fillMaxSize()) {
 
@@ -86,15 +88,7 @@ fun DialStartScreen(
             DialStartButton(
                 durationSeconds = timeLeft,
                 isRunning = isRunning,
-                onStart = {
-                    onStart()
-//                    meditationViewModel.startMeditation()
-//                    timerViewModel.startTimer(
-//                        onFinish = {
-//                            meditationViewModel.finishMeditation("Good")
-//                        }
-//                    )
-                },
+                onStart = onStart,
                 onTouchDuringRunning = {
                     meditationViewModel.addTouchRecord()
                 }
@@ -112,7 +106,7 @@ fun DialStartScreen(
                     Button(
                         onClick = { openDialog = true },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF41C3E7),
+                            //containerColor = Color(0xFF41C3E7),
                             contentColor = Color(0xFFFFFFFF)
                         ),
                     ) {

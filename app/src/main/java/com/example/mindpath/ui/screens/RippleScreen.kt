@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -13,10 +14,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +43,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mindpath.ui.components.MeditationTimerBar
+import com.example.mindpath.viewmodel.MeditationViewModel
+import com.example.mindpath.viewmodel.TimerViewModel
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.Language
 
@@ -90,7 +100,35 @@ private const val IMG_SHADER_SRC = """
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
-fun RippleScreen() {
+fun RippleScreen(
+    timerViewModel: TimerViewModel = viewModel(),
+    meditationViewModel: MeditationViewModel = viewModel(factory = MeditationViewModel.Factory)
+) {
+    val isRunning by timerViewModel.isTimerRunning.collectAsState()
+    val timeLeft by timerViewModel.timeLeft.collectAsState()
+    // StateFlow의 변화를 지속적으로 관찰함
+    val totalTime by timerViewModel.totalTime.collectAsState()
+
+    val touchCount by meditationViewModel.currentTouchCount.collectAsState()
+
+    // 1. 목표치 계산 (0.0 ~ 1.0)
+    val currentProgress = if (totalTime > 0) {
+        (timeLeft.toFloat() / totalTime.toFloat())
+    } else {
+        0f
+    }
+
+// 2. 1초 동안 부드럽게 따라가는 애니메이션 상태 생성
+    val animatedProgress by animateFloatAsState(
+        targetValue = currentProgress,
+        // 핵심 포인트: duration을 1000ms(1초)로 주고, LinearEasing을 사용합니다.
+        animationSpec = tween(
+            durationMillis = 1000,
+            easing = LinearEasing
+        ),
+        label = "TimerProgressAnimation"
+    )
+
     val gradientColors = listOf(
         Color(0xFF00B4DB), // 상단
         Color(0xFF005C97)  // 하단
@@ -104,6 +142,15 @@ fun RippleScreen() {
     val touchTime = remember { Animatable(-1f) }
     var touchOffset by remember { mutableStateOf(Offset.Unspecified) }
 
+    LaunchedEffect(Unit) {
+        meditationViewModel.startMeditation()
+        timerViewModel.startTimer(
+            onFinish = {
+                meditationViewModel.finishMeditation("Good")
+            }
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -113,6 +160,7 @@ fun RippleScreen() {
                         // 1. 진동 발생 (짧고 가벼운 터치감)
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
 
+                        meditationViewModel.addTouchRecord()
                         // 2. 파동 애니메이션 로직
                         touchOffset = offset
                         coroutineScope.launch {
@@ -146,6 +194,27 @@ fun RippleScreen() {
                 .background(Brush.verticalGradient(gradientColors))
         )
 
+        // 🌟 [추가된 레이어] 알아차림 횟수 텍스트 (중앙에서 약간 상단)
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(y = (-60).dp), // 중앙 기준에서 위로 60dp 끌어올림
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "알아차림 횟수",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 20.sp
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "$touchCount", // 뷰모델에서 가져온 실시간 횟수
+                color = Color.White.copy(alpha = 0.9f),
+                fontSize = 66.sp, // 숫자는 크고 얇게 표현해 명상적인 분위기 연출
+                fontWeight = FontWeight.Light
+            )
+        }
+
         // 3. 셰이더 영향을 받지 않는 깨끗한 텍스트 UI
         Column(
             modifier = Modifier
@@ -156,7 +225,8 @@ fun RippleScreen() {
             Text(
                 text = "설정 시간",
                 color = Color(0xFFE0F7FA),
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                lineHeight = 14.sp
             )
             Text(
                 text = "Total Session Time",
@@ -164,7 +234,29 @@ fun RippleScreen() {
                 fontSize = 12.sp
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f) // 1. 여기서 타이머 바와 텍스트가 공유할 '80% 너비'를 확정 짓습니다.
+                    .padding(vertical = 5.dp)
+            ) {
+                // 2. 시간 텍스트 (우측 정렬)
+                Text(
+                    text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
+                    fontSize = 18.sp, // 직접 크기 지정
+                    lineHeight = 18.sp,
+                    fontWeight = FontWeight.Medium, // 굵기 지정
+                    color = Color.White, // 💡 주의: 현재 배경이 어두운 블루 계열이라 안 보일 수 있습니다.
+                    modifier = Modifier.align(Alignment.End) // 이 속성으로 우측 끝에 붙입니다.
+                )
+
+                Spacer(modifier = Modifier.height(4.dp)) // 텍스트와 선 사이의 미세한 간격
+
+                // 3. 타이머 바 (부모의 80% 너비를 100% 꽉 채움)
+                MeditationTimerBar(
+                    progress = animatedProgress,
+                    modifier = Modifier.fillMaxWidth() // 내부에 있던 0.8f 제약은 빼고 꽉 채우기만 합니다.
+                )
+            }
 
             Text(
                 text = "알아차림의 파동을 느껴보세요.",

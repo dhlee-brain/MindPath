@@ -6,8 +6,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
@@ -150,10 +154,19 @@ fun DialStartButton(
             }
         }
 
-        Text(
-            text = "360º 회전하여\n명상 시작하기",
-            color = Color.White
-        )
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ){
+            Text(
+                text = "360도 회전하여",
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = "명상 시작하기",
+                color = Color.White
+            )
+        }
     }
 
     LaunchedEffect(isRunning) {

@@ -11,11 +11,16 @@ import com.example.mindpath.local.MeditationSessionEntity
 import com.example.mindpath.local.TouchRecordEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MeditationViewModel(private val repository: MeditationRepository) : ViewModel() {
     private var startTime: Long = 0
     private val currentTouchRecords = mutableListOf<Long>()
+
+    // 🌟 추가: UI에서 실시간으로 관찰할 터치 횟수 상태
+    private val _currentTouchCount = MutableStateFlow(0)
+    val currentTouchCount: StateFlow<Int> = _currentTouchCount.asStateFlow()
 
     private val _allSessions = MutableStateFlow<List<MeditationSessionEntity>>(emptyList())
     val allSessions: StateFlow<List<MeditationSessionEntity>> = _allSessions
@@ -26,10 +31,12 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
     fun startMeditation() {
         startTime = System.currentTimeMillis()
         currentTouchRecords.clear()
+        _currentTouchCount.value = 0 // 시작할 때 카운트 초기화
     }
 
     fun addTouchRecord() {
         currentTouchRecords.add(System.currentTimeMillis())
+        _currentTouchCount.value = currentTouchRecords.size // 리스트 크기로 카운트 업데이트
     }
 
     fun finishMeditation(feeling: String) {
