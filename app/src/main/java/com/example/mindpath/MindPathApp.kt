@@ -1,10 +1,9 @@
 package com.example.mindpath
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -15,11 +14,13 @@ import com.example.mindpath.ui.screens.MainScreen
 import com.example.mindpath.ui.screens.OnboardingScreen
 import com.example.mindpath.ui.screens.RecordScreen
 import com.example.mindpath.ui.screens.RippleScreen
+import com.example.mindpath.viewmodel.TimerViewModel
 
 // 1. 앱의 최상단 루트: 화면 흐름의 큰 줄기(온보딩 vs 메인)만 관리
 @Composable
 fun MindPathApp() {
     val navController = rememberNavController()
+    val timerViewModel: TimerViewModel = viewModel() // TimerViewModel을 최상위에서 생성
 
     NavHost(
         navController = navController,
@@ -51,7 +52,8 @@ fun MindPathApp() {
                 },
                 onStart = {
                     navController.navigate("transition")
-                }
+                },
+                timerViewModel = timerViewModel // MainScreen에 timerViewModel 전달
             )
         }
 
@@ -68,7 +70,7 @@ fun MindPathApp() {
         }
 
         composable("ripple") {
-            RippleScreen()
+            RippleScreen(timerViewModel = timerViewModel) // RippleScreen에 timerViewModel 전달
         }
     }
 }

@@ -101,7 +101,7 @@ private const val IMG_SHADER_SRC = """
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun RippleScreen(
-    timerViewModel: TimerViewModel = viewModel(),
+    timerViewModel: TimerViewModel,
     meditationViewModel: MeditationViewModel = viewModel(factory = MeditationViewModel.Factory)
 ) {
     val isRunning by timerViewModel.isTimerRunning.collectAsState()
@@ -144,11 +144,7 @@ fun RippleScreen(
 
     LaunchedEffect(Unit) {
         meditationViewModel.startMeditation()
-        timerViewModel.startTimer(
-            onFinish = {
-                meditationViewModel.finishMeditation("Good")
-            }
-        )
+        timerViewModel.startTimer()
     }
 
     Box(
@@ -159,9 +155,9 @@ fun RippleScreen(
                     onTap = { offset ->
                         // 1. 진동 발생 (짧고 가벼운 터치감)
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-
+                        // 2. 터치 기록 추가
                         meditationViewModel.addTouchRecord()
-                        // 2. 파동 애니메이션 로직
+                        // 3. 파동 애니메이션 로직
                         touchOffset = offset
                         coroutineScope.launch {
                             touchTime.snapTo(0f)
@@ -258,17 +254,13 @@ fun RippleScreen(
                 )
             }
 
-            Text(
-                text = "알아차림의 파동을 느껴보세요.",
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text( // 나중에 노트에 적힌 문구로 바꾸기.
+                text = "생각에 빠졌음을 알아차릴 때\n화면을 터치하여 돌아오세요",
                 color = Color(0xFFE0F7FA),
-                fontSize = 20.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "Feel the waves of your awareness.",
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 14.sp,
                 textAlign = TextAlign.Center
             )
         }

@@ -23,15 +23,15 @@ class TimerViewModel : ViewModel() {
 
     private var timerJob: Job? = null
 
-    fun startTimer(onFinish: () -> Unit = {}) {
+    fun startTimer() {
         if (_isTimerRunning.value) return
         _isTimerRunning.value = true
         val startTime = System.currentTimeMillis()
-        // 2. 전체 시간은 totalTime 상태값을 기준으로 함
+
         val totalTicks = _totalTime.value
 
         // 타이머 시작 시 남은 시간을 전체 시간으로 초기화
-        _timeLeft.value = totalTicks
+        _timeLeft.value = _totalTime.value
 
         timerJob = viewModelScope.launch {
             for (tick in totalTicks downTo 1) {
@@ -45,7 +45,6 @@ class TimerViewModel : ViewModel() {
                 _timeLeft.value = tick - 1
             }
             _isTimerRunning.value = false
-            onFinish()
         }
     }
 

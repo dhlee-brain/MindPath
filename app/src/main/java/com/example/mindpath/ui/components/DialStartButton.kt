@@ -48,8 +48,7 @@ fun DialStartButton(
     startThresholdDegrees: Float = 360f,
     durationSeconds: Int,
     isRunning: Boolean = false, // 외부 상태 반영
-    onStart: () -> Unit,
-    onTouchDuringRunning: () -> Unit = {} // 실행 중 터치 이벤트
+    onStart: () -> Unit
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
     var accumulatedRotation by remember { mutableFloatStateOf(0f) }
@@ -74,12 +73,6 @@ fun DialStartButton(
             .pointerInput(isRunning) {
                 awaitEachGesture {
                     val down = awaitFirstDown()
-                    
-                    if (isRunning) {
-                        // 실행 중일 때는 터치 시 바로 기록 이벤트 발생
-                        onTouchDuringRunning()
-                        return@awaitEachGesture
-                    }
 
                     val center = Offset(size.width / 2f, size.height / 2f)
                     var lastAngle = angleDeg(down.position - center)

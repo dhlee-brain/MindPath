@@ -52,8 +52,7 @@ fun DialStartScreen(
     modifier: Modifier = Modifier,
     onHelpClick: () -> Unit,
     onStart: () -> Unit,
-    timerViewModel: TimerViewModel = viewModel(),
-    meditationViewModel: MeditationViewModel = viewModel(factory = MeditationViewModel.Factory)
+    timerViewModel: TimerViewModel = viewModel()
 ) {
     val isRunning by timerViewModel.isTimerRunning.collectAsState()
     val timeLeft by timerViewModel.timeLeft.collectAsState()
@@ -70,7 +69,6 @@ fun DialStartScreen(
                 .size(64.dp)
                 .align(Alignment.TopEnd) // 우측 상단 정렬
                 .padding(16.dp) // 화면 가장자리와의 여백
-            // .statusBarsPadding() // 만약 상단 상태바 영역을 침범한다면 이 줄의 주석을 해제하세요.
         ) {
             Icon(
                 imageVector = Icons.Default.Info, // HelpOutline이나 다른 아이콘으로 변경 가능
@@ -89,14 +87,11 @@ fun DialStartScreen(
                 durationSeconds = timeLeft,
                 isRunning = isRunning,
                 onStart = onStart,
-                onTouchDuringRunning = {
-                    meditationViewModel.addTouchRecord()
-                }
             )
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            TimerDisplay(timeLeft = timeLeft, isRunning = isRunning)
+            TimerDisplay(timeLeft = timeLeft)
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -106,7 +101,7 @@ fun DialStartScreen(
                     Button(
                         onClick = { openDialog = true },
                         colors = ButtonDefaults.buttonColors(
-                            //containerColor = Color(0xFF41C3E7),
+                            //   containerColor = Color(0xFF41C3E7),
                             contentColor = Color(0xFFFFFFFF)
                         ),
                     ) {
@@ -147,16 +142,13 @@ fun DialStartScreen(
 }
 
 @Composable
-fun TimerDisplay(timeLeft: Int, isRunning: Boolean) {
+fun TimerDisplay(timeLeft: Int) {
     Column(horizontalAlignment = Alignment.Companion.CenterHorizontally) {
         Text(
             text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
             style = MaterialTheme.typography.displayLarge,
             color = Color.Companion.DarkGray
         )
-        if (isRunning) {
-            Text(text = "Focusing...", color = Color.Companion.Gray)
-        }
     }
 }
 
