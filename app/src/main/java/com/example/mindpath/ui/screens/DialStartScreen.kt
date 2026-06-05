@@ -55,7 +55,7 @@ fun DialStartScreen(
     timerViewModel: TimerViewModel = viewModel()
 ) {
     val isRunning by timerViewModel.isTimerRunning.collectAsState()
-    val timeLeft by timerViewModel.timeLeft.collectAsState()
+    val totalTime by timerViewModel.totalTime.collectAsState()
     var openDialog by remember { mutableStateOf(false) }
 
 
@@ -84,35 +84,35 @@ fun DialStartScreen(
             verticalArrangement = Arrangement.Center
         ) {
             DialStartButton(
-                durationSeconds = timeLeft,
-                isRunning = isRunning,
-                onStart = onStart,
+                onStart = onStart
             )
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            TimerDisplay(timeLeft = timeLeft)
+            TimerDisplay(timeLeft = totalTime)
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            if (!isRunning) {
-                Row {
-                    Spacer(modifier = Modifier.width(100.dp))
-                    Button(
-                        onClick = { openDialog = true },
-                        colors = ButtonDefaults.buttonColors(
-                            //   containerColor = Color(0xFF41C3E7),
-                            contentColor = Color(0xFFFFFFFF)
-                        ),
-                    ) {
-                        Text(fontSize = 20.sp, text = "시간 선택")
-                    }
+            Row {
+                Spacer(modifier = Modifier.width(100.dp))
+                Button(
+                    onClick = { openDialog = true },
+                    colors = ButtonDefaults.buttonColors(
+                        //   containerColor = Color(0xFF41C3E7),
+                        contentColor = Color(0xFFFFFFFF)
+                    ),
+                ) {
+                    Text(fontSize = 20.sp, text = "시간 선택")
                 }
             }
 
             if (openDialog) {
+                var tempSeconds by remember { mutableStateOf(totalTime) }
+
                 BasicAlertDialog(
-                    onDismissRequest = { openDialog = false }
+                    onDismissRequest = {
+                        openDialog = false
+                    }
                 ) {
                     Surface(
                         modifier = Modifier.wrapContentWidth().wrapContentHeight(),
@@ -121,17 +121,20 @@ fun DialStartScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             PickHourMinuteSecondFun(
-                                initialTotalSeconds = timeLeft,
+                                initialTotalSeconds = totalTime,
                                 onTimeChange = { newSeconds ->
-                                    timerViewModel.setTime(newSeconds)
+                                    tempSeconds = newSeconds
                                 }
                             )
                             Spacer(modifier = Modifier.height(24.dp))
                             TextButton(
-                                onClick = { openDialog = false },
+                                onClick = {
+                                    timerViewModel.setTime(tempSeconds)
+                                    openDialog = false
+                                },
                                 modifier = Modifier.align(Alignment.End)
                             ) {
-                                Text("Confirm")
+                                Text("시간 선택")
                             }
                         }
                     }

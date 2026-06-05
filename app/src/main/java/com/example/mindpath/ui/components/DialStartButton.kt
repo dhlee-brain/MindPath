@@ -46,15 +46,12 @@ private data class Particle(val position: Offset, val createdAt: Long)
 fun DialStartButton(
     modifier: Modifier = Modifier,
     startThresholdDegrees: Float = 360f,
-    durationSeconds: Int,
-    isRunning: Boolean = false, // 외부 상태 반영
     onStart: () -> Unit
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
     var accumulatedRotation by remember { mutableFloatStateOf(0f) }
 
     val particles = remember { mutableStateListOf<Particle>() }
-    val sweepAngle = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -70,7 +67,7 @@ fun DialStartButton(
             .size(220.dp)
             .clip(CircleShape)
             .onSizeChanged { size = it }
-            .pointerInput(isRunning) {
+            .pointerInput(Unit) {
                 awaitEachGesture {
                     val down = awaitFirstDown()
 
@@ -98,6 +95,7 @@ fun DialStartButton(
                                 particles.add(Particle(currentPos, System.currentTimeMillis()))
 
                                 if (abs(accumulatedRotation) >= startThresholdDegrees) {
+                                    accumulatedRotation = 0f
                                     onStart()
                                     break
                                 }
@@ -112,38 +110,28 @@ fun DialStartButton(
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val startAngleOffset = -90f
-            drawCircle(color = if (isRunning) Color(0xFF444444) else Color(0xFF1A1A1A))
+            drawCircle(color = Color(0xFF1A1A1A))
 
-            if (isRunning) {
-                drawArc(
-                    color = Color.Red,
-                    startAngle = startAngleOffset,
-                    sweepAngle = sweepAngle.value,
-                    useCenter = true
+            val strokeWidth = 50f
+            drawArc(
+                color = Purple80.copy(alpha = 1f),
+                startAngle = startAngleOffset,
+                sweepAngle = accumulatedRotation,
+                useCenter = false,
+                style = Stroke(width = strokeWidth)
+            )
+
+            val now = System.currentTimeMillis()
+            particles.forEach { particle ->
+                val age = (now - particle.createdAt).coerceAtLeast(0)
+                val alpha = (1f - age / 600f).coerceIn(0f, 1f)
+                val lifeRatio = (1f - age / 600f).coerceIn(0f, 1f)
+                drawCircle(
+                    color = Color(0xFFBBBBBB).copy(alpha = lifeRatio * 0.7f),
+                    radius = 15f * alpha,
+                    center = particle.position,
+                    blendMode = BlendMode.Screen
                 )
-            } else {
-                val strokeWidth = 50f
-                drawArc(
-                    color = Purple80.copy(alpha = 1f),
-                    startAngle = startAngleOffset,
-                    sweepAngle = accumulatedRotation,
-                    useCenter = false,
-                    style = Stroke(width = strokeWidth)
-                )
-
-                val now = System.currentTimeMillis()
-                particles.forEach { particle ->
-                    val age = (now - particle.createdAt).coerceAtLeast(0)
-                    val alpha = (1f - age / 600f).coerceIn(0f, 1f)
-                    val lifeRatio = (1f - age / 600f).coerceIn(0f, 1f)
-
-                    drawCircle(
-                        color = Color(0xFFBBBBBB).copy(alpha = lifeRatio * 0.7f),
-                        radius = 15f * alpha,
-                        center = particle.position,
-                        blendMode = BlendMode.Screen
-                    )
-                }
             }
         }
 
@@ -159,19 +147,6 @@ fun DialStartButton(
                 text = "명상 시작하기",
                 color = Color.White
             )
-        }
-    }
-
-    LaunchedEffect(isRunning) {
-        if (isRunning) {
-            sweepAngle.animateTo(
-                targetValue = 360f,
-                animationSpec = tween(durationMillis = durationSeconds * 1000, easing = LinearEasing)
-            )
-        } else {
-            accumulatedRotation = 0f
-            particles.clear()
-            sweepAngle.snapTo(0f)
         }
     }
 }

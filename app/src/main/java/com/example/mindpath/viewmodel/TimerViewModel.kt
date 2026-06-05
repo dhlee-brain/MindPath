@@ -4,13 +4,17 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 class TimerViewModel : ViewModel() {
+    private val _timerFinishEvent = Channel<Unit>()
+    val timerFinishEvent = _timerFinishEvent.receiveAsFlow()
     private val _isTimerRunning = MutableStateFlow(false)
     val isTimerRunning: StateFlow<Boolean> = _isTimerRunning.asStateFlow()
 
@@ -24,7 +28,6 @@ class TimerViewModel : ViewModel() {
     private var timerJob: Job? = null
 
     fun startTimer() {
-        if (_isTimerRunning.value) return
         _isTimerRunning.value = true
         val startTime = System.currentTimeMillis()
 
@@ -45,6 +48,7 @@ class TimerViewModel : ViewModel() {
                 _timeLeft.value = tick - 1
             }
             _isTimerRunning.value = false
+            _timerFinishEvent.send(Unit)
         }
     }
 
@@ -55,9 +59,6 @@ class TimerViewModel : ViewModel() {
 
     fun setTime(seconds: Int) {
         _totalTime.value = seconds
-        // 타이머가 돌고 있지 않을 때는 설정 시간을 변경하면 남은 시간도 동기화
-        if (!_isTimerRunning.value) {
-            _timeLeft.value = seconds
-        }
+        _timeLeft.value = seconds
     }
 }

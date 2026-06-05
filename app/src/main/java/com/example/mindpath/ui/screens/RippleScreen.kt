@@ -3,6 +3,7 @@ package com.example.mindpath.ui.screens
 import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -44,6 +45,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mindpath.ui.components.ExitMeditationDialog
+import com.example.mindpath.ui.components.FeelingInputDialog
 import com.example.mindpath.ui.components.MeditationTimerBar
 import com.example.mindpath.viewmodel.MeditationViewModel
 import com.example.mindpath.viewmodel.TimerViewModel
@@ -102,7 +105,8 @@ private const val IMG_SHADER_SRC = """
 @Composable
 fun RippleScreen(
     timerViewModel: TimerViewModel,
-    meditationViewModel: MeditationViewModel = viewModel(factory = MeditationViewModel.Factory)
+    meditationViewModel: MeditationViewModel = viewModel(factory = MeditationViewModel.Factory),
+    onNavigateBack: () -> Unit
 ) {
     val isRunning by timerViewModel.isTimerRunning.collectAsState()
     val timeLeft by timerViewModel.timeLeft.collectAsState()
@@ -111,23 +115,65 @@ fun RippleScreen(
 
     val touchCount by meditationViewModel.currentTouchCount.collectAsState()
 
-    // 1. 목표치 계산 (0.0 ~ 1.0)
-    val currentProgress = if (totalTime > 0) {
-        (timeLeft.toFloat() / totalTime.toFloat())
-    } else {
-        0f
+    var showExitDialog by remember { mutableStateOf(false) }
+    var showFeelingDialog by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = true) {
+        showExitDialog = true
     }
 
-// 2. 1초 동안 부드럽게 따라가는 애니메이션 상태 생성
-    val animatedProgress by animateFloatAsState(
-        targetValue = currentProgress,
-        // 핵심 포인트: duration을 1000ms(1초)로 주고, LinearEasing을 사용합니다.
-        animationSpec = tween(
-            durationMillis = 1000,
-            easing = LinearEasing
-        ),
-        label = "TimerProgressAnimation"
-    )
+    if (showExitDialog) {
+        ExitMeditationDialog(
+            onConfirm = {
+                showExitDialog = false
+                timerViewModel.stopTimer() // 타이머 중지
+                meditationViewModel.finishMeditation("중도 종료") // DB 저장
+                onNavigateBack()// 메인으로 돌아가기
+            },
+            onDismiss = {
+                showExitDialog = false // 창만 닫고 명상 계속
+            }
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        timerViewModel.timerFinishEvent.collect {
+            showFeelingDialog = true
+        }
+    }
+
+    if (showFeelingDialog) {
+        FeelingInputDialog(
+            onConfirm = { inputFeeling ->
+                showFeelingDialog = false
+                meditationViewModel.finishMeditation(inputFeeling) // 입력한 소감으로 DB 저장
+                onNavigateBack() // 메인으로 돌아가기
+            },
+            onDismiss = {
+                // 원한다면 소감을 안 적고 닫았을 때의 처리 (예: 빈칸으로 저장하고 닫기)
+                showFeelingDialog = false
+                meditationViewModel.finishMeditation("소감 생략")
+                onNavigateBack()
+            }
+        )
+    }
+
+    // 🌟 1. 타이머 바 전용 독립 애니메이션 상태 (초기값 1.0 = 100%)
+    val progressAnim = remember { Animatable(1f) }
+
+// 🌟 2. 타이머 On/Off 신호에 맞춰 한 번의 롱테이크 애니메이션 실행
+    LaunchedEffect(Unit) {
+            // 타이머 켜짐: 시작 전에 100%로 꽉 채운 후
+            progressAnim.snapTo(1f)
+            // 전체 설정 시간(ms) 동안 0%를 향해 한 번에 스무스하게 깎아내림!
+            progressAnim.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(
+                    durationMillis = totalTime * 1000, // ex: 2초면 2000ms 동안 쭉 줄어듦
+                    easing = LinearEasing
+                )
+            )
+    }
 
     val gradientColors = listOf(
         Color(0xFF00B4DB), // 상단
@@ -249,7 +295,7 @@ fun RippleScreen(
 
                 // 3. 타이머 바 (부모의 80% 너비를 100% 꽉 채움)
                 MeditationTimerBar(
-                    progress = animatedProgress,
+                    progress = progressAnim.value,
                     modifier = Modifier.fillMaxWidth() // 내부에 있던 0.8f 제약은 빼고 꽉 채우기만 합니다.
                 )
             }

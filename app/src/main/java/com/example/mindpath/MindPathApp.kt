@@ -70,7 +70,10 @@ fun MindPathApp() {
         }
 
         composable("ripple") {
-            RippleScreen(timerViewModel = timerViewModel) // RippleScreen에 timerViewModel 전달
+            RippleScreen(
+                timerViewModel = timerViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }
