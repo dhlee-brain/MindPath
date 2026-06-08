@@ -108,7 +108,6 @@ fun RippleScreen(
     meditationViewModel: MeditationViewModel = viewModel(factory = MeditationViewModel.Factory),
     onNavigateBack: () -> Unit
 ) {
-    val isRunning by timerViewModel.isTimerRunning.collectAsState()
     val timeLeft by timerViewModel.timeLeft.collectAsState()
     // StateFlow의 변화를 지속적으로 관찰함
     val totalTime by timerViewModel.totalTime.collectAsState()
@@ -118,6 +117,13 @@ fun RippleScreen(
     var showExitDialog by remember { mutableStateOf(false) }
     var showFeelingDialog by remember { mutableStateOf(false) }
 
+    // 1. 타이머 시작
+    LaunchedEffect(Unit) {
+        meditationViewModel.startMeditation()
+        timerViewModel.startTimer()
+    }
+
+    // 2. 백 버튼 또는 스와이프 제스쳐를 통한 종료
     BackHandler(enabled = true) {
         showExitDialog = true
     }
@@ -136,6 +142,7 @@ fun RippleScreen(
         )
     }
 
+    // 2. 타이머가 시간이 다 되어 종료되었을 때의 종료
     LaunchedEffect(Unit) {
         timerViewModel.timerFinishEvent.collect {
             showFeelingDialog = true
@@ -158,10 +165,10 @@ fun RippleScreen(
         )
     }
 
-    // 🌟 1. 타이머 바 전용 독립 애니메이션 상태 (초기값 1.0 = 100%)
+    // 타이머 바 전용 독립 애니메이션 상태 (초기값 1.0 = 100%)
     val progressAnim = remember { Animatable(1f) }
 
-// 🌟 2. 타이머 On/Off 신호에 맞춰 한 번의 롱테이크 애니메이션 실행
+    // 3. 타이머 On/Off 신호에 맞춰 한 번의 롱테이크 애니메이션 실행
     LaunchedEffect(Unit) {
             // 타이머 켜짐: 시작 전에 100%로 꽉 채운 후
             progressAnim.snapTo(1f)
@@ -188,10 +195,6 @@ fun RippleScreen(
     val touchTime = remember { Animatable(-1f) }
     var touchOffset by remember { mutableStateOf(Offset.Unspecified) }
 
-    LaunchedEffect(Unit) {
-        meditationViewModel.startMeditation()
-        timerViewModel.startTimer()
-    }
 
     Box(
         modifier = Modifier
