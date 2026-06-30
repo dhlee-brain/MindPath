@@ -12,6 +12,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.example.mindpath.ui.components.MyBottomNavigation
+import com.example.mindpath.ui.theme.Grey100
+import com.example.mindpath.ui.theme.Grey200
 import com.example.mindpath.viewmodel.TimerViewModel
 
 // 2. 메인 화면 내부: Scaffold를 치고, 내부 탭은 when 분기로 초고속 전환
@@ -31,7 +33,7 @@ fun MainScreen(
                 onTabSelected = { currentTab = it }
             )
         },
-        containerColor = Color.White,
+        containerColor = Grey200,
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
         Box(

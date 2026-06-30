@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mindpath.ui.components.DialStartButton
 import com.example.mindpath.ui.components.PickHourMinuteSecondFun
+import com.example.mindpath.ui.theme.Grey100
+import com.example.mindpath.ui.theme.Grey200
 import com.example.mindpath.viewmodel.MeditationViewModel
 import com.example.mindpath.viewmodel.TimerViewModel
 import kotlin.math.atan2
@@ -98,8 +100,8 @@ fun DialStartScreen(
                 Button(
                     onClick = { openDialog = true },
                     colors = ButtonDefaults.buttonColors(
-                        //   containerColor = Color(0xFF41C3E7),
-                        contentColor = Color(0xFFFFFFFF)
+                        containerColor = Color(0xFF00B4DB).copy(alpha = 0.5f),
+                        contentColor = Color(0xEE005C97)
                     ),
                 ) {
                     Text(fontSize = 20.sp, text = "시간 선택")
@@ -117,7 +119,8 @@ fun DialStartScreen(
                     Surface(
                         modifier = Modifier.wrapContentWidth().wrapContentHeight(),
                         shape = MaterialTheme.shapes.large,
-                        tonalElevation = AlertDialogDefaults.TonalElevation
+                        tonalElevation = AlertDialogDefaults.TonalElevation,
+                        color = Grey100
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             PickHourMinuteSecondFun(

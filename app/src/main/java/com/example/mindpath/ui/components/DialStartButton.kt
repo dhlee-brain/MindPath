@@ -29,8 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
@@ -111,16 +113,32 @@ fun DialStartButton(
         Canvas(modifier = Modifier.fillMaxSize()) {
             val startAngleOffset = -90f
             drawCircle(color = Color(0xFF1A1A1A))
-
-            val strokeWidth = 50f
-            drawArc(
-                color = Purple80.copy(alpha = 1f),
-                startAngle = startAngleOffset,
-                sweepAngle = accumulatedRotation,
-                useCenter = false,
-                style = Stroke(width = strokeWidth)
+            // 1. 그라디언트 색상 정의 (파란색 -> 보라색)
+            val gradientColors = listOf(
+                Color(0xFF00B4DB), // 상단
+                Color(0xFF005C97)  // 하단
             )
 
+            // 2. 그라디언트의 중심 설정 (현재 캔버스 중심)
+            // 캔버스 크기의 절반 지점을 Offset으로 지정합니다.
+            val arcCenter = Offset(size.width / 2f, size.height / 2f)
+
+            // 3. sweepGradient Brush 생성
+            val sweepGradientBrush = Brush.sweepGradient(
+                colors = gradientColors,
+                center = arcCenter // 그라디언트가 회전할 기준점
+            )
+
+            val strokeWidth = 50f
+            rotate(degrees = -90f, pivot = arcCenter) {
+                drawArc(
+                    brush = sweepGradientBrush,
+                    startAngle = 0f,
+                    sweepAngle = accumulatedRotation,
+                    useCenter = false,
+                    style = Stroke(width = strokeWidth)
+                )
+            }
             val now = System.currentTimeMillis()
             particles.forEach { particle ->
                 val age = (now - particle.createdAt).coerceAtLeast(0)

@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,17 +20,22 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.mindpath.ui.theme.Grey100
+import com.example.mindpath.ui.theme.Grey200
 
 @Composable
 fun MyBottomNavigation(currentTab: String, onTabSelected: (String) -> Unit) {
     NavigationBar(
         modifier = Modifier.shadow(elevation = 10.dp),
-        containerColor = Color.White
+        containerColor = Grey100
     ) {
         // 명상(Meditate) 탭
         NavigationBarItem(
             selected = currentTab == "meditate",
             onClick = { onTabSelected("meditate") },
+            colors = NavigationBarItemDefaults.colors(
+                indicatorColor = Color(0xFF00B4DB).copy(alpha = 0.3f),
+            ),
             icon = { Icon(Icons.Default.Favorite, contentDescription = "명상") },
             label = { Text("명상") }
         )
@@ -38,6 +44,9 @@ fun MyBottomNavigation(currentTab: String, onTabSelected: (String) -> Unit) {
         NavigationBarItem(
             selected = currentTab == "record",
             onClick = { onTabSelected("record") },
+            colors = NavigationBarItemDefaults.colors(
+                indicatorColor = Color(0xFF00B4DB).copy(alpha = 0.3f),
+            ),
             icon = { Icon(Icons.Default.DateRange, contentDescription = "기록") },
             label = { Text("기록") }
         )
