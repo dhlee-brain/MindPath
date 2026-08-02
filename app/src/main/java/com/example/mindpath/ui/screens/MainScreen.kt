@@ -1,5 +1,6 @@
 package com.example.mindpath.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,6 +11,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.example.mindpath.ui.components.MyBottomNavigation
 import com.example.mindpath.ui.theme.Grey100
@@ -33,12 +36,23 @@ fun MainScreen(
                 onTabSelected = { currentTab = it }
             )
         },
-        containerColor = Grey200,
+        // containerColor = Color(0xFFFAF5FF),
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFEEF2FF),  // indigo-50
+                            Color(0xFFFAF5FF),  // purple-50
+                            Color(0xFFFDF2F8),  // pink-50
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                    )
+                )
                 .padding(innerPadding)
         ) {
             // 네비게이션 오버헤드 없이, 상태 변경에 따라 즉시 화면을 갈아끼움

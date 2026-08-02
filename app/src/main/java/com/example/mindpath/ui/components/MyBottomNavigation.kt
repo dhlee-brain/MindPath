@@ -27,14 +27,14 @@ import com.example.mindpath.ui.theme.Grey200
 fun MyBottomNavigation(currentTab: String, onTabSelected: (String) -> Unit) {
     NavigationBar(
         modifier = Modifier.shadow(elevation = 10.dp),
-        containerColor = Grey100
+        containerColor = Color.White
     ) {
         // 명상(Meditate) 탭
         NavigationBarItem(
             selected = currentTab == "meditate",
             onClick = { onTabSelected("meditate") },
             colors = NavigationBarItemDefaults.colors(
-                indicatorColor = Color(0xFF00B4DB).copy(alpha = 0.3f),
+                indicatorColor = Color(0xFF6366F1).copy(alpha = 0.3f),
             ),
             icon = { Icon(Icons.Default.Favorite, contentDescription = "명상") },
             label = { Text("명상") }
@@ -45,7 +45,7 @@ fun MyBottomNavigation(currentTab: String, onTabSelected: (String) -> Unit) {
             selected = currentTab == "record",
             onClick = { onTabSelected("record") },
             colors = NavigationBarItemDefaults.colors(
-                indicatorColor = Color(0xFF00B4DB).copy(alpha = 0.3f),
+                indicatorColor = Color(0xFF6366F1).copy(alpha = 0.3f),
             ),
             icon = { Icon(Icons.Default.DateRange, contentDescription = "기록") },
             label = { Text("기록") }

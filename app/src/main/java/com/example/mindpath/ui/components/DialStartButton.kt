@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
@@ -63,11 +64,22 @@ fun DialStartButton(
             }
         }
     }
+    // linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #a855f7 100%)
+    val circleGradient = Brush.linearGradient(
+        colorStops = arrayOf(
+            0.0f to Color(0xFF6366F1),   // Indigo 500
+            0.6f to Color(0xFF8B5CF6),   // Violet 500
+            1.0f to Color(0xFFA855F7),   // Purple 500
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(size.width.toFloat(), size.height.toFloat())  // 135° ≈ top-left → bottom-right
+    )
 
     Box(
         modifier = modifier
-            .size(220.dp)
+            .size(288.dp)
             .clip(CircleShape)
+            .background(circleGradient)
             .onSizeChanged { size = it }
             .pointerInput(Unit) {
                 awaitEachGesture {
@@ -112,7 +124,7 @@ fun DialStartButton(
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val startAngleOffset = -90f
-            drawCircle(color = Color(0xFF1A1A1A))
+            // drawCircle(color = Color(0xFF1A1A1A))
             // 1. 그라디언트 색상 정의 (파란색 -> 보라색)
             val gradientColors = listOf(
                 Color(0xFF00B4DB), // 상단

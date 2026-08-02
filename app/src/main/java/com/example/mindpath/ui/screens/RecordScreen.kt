@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mindpath.local.MeditationSessionEntity
 import com.example.mindpath.local.TouchRecordEntity
+import com.example.mindpath.ui.theme.Grey200
 import com.example.mindpath.viewmodel.MeditationViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -69,13 +70,17 @@ fun RecordScreen(
             headline = null,       // 💡 "2026년 6월 19일" 등의 선택된 날짜 텍스트 제거
             showModeToggle = false, // 💡 우측 상단의 연필 아이콘(입력 모드 전환) 제거 (선택 사항)
             colors = DatePickerDefaults.colors(
-                containerColor = Color.Transparent,
+                containerColor = Color(0xFFFAF5FF),
                 weekdayContentColor = Color.DarkGray,
                 dayContentColor = Color.Black,
                 selectedDayContainerColor = Color(0xFF00B4DB), // 포인트 색상
                 selectedDayContentColor = Color.White,
                 todayContentColor = Color(0xFF00B4DB),
-                todayDateBorderColor = Color(0xFF00B4DB)
+                todayDateBorderColor = Color(0xFF00B4DB),
+                yearContentColor = Color.Black,
+                currentYearContentColor = Color(0xFF00B4DB),
+                selectedYearContainerColor = Color(0xFF00B4DB),
+                selectedYearContentColor = Color.White
             )
         )
 
@@ -261,6 +266,14 @@ fun TouchRecordDetail(
         Text(text = "알아차림 횟수 : ${count}번", color = Color.Black, style = MaterialTheme.typography.bodyMedium)
         Spacer(modifier = Modifier.height(4.dp))
         Text(text = "소요 시간 : $durationText", color = Color.Black, style = MaterialTheme.typography.bodyMedium)
+
+        Spacer(modifier = Modifier.height(4.dp))
+        val feelingText = session.feelingRecord?.takeIf { it.isNotBlank() } ?: "기록이 없습니다."
+        Text(
+            text = "명상 후 느낌 : $feelingText",
+            color = Color.Black,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 
