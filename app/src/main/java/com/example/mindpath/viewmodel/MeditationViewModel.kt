@@ -39,8 +39,12 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
         _currentTouchCount.value = currentTouchRecords.size // 리스트 크기로 카운트 업데이트
     }
 
-    fun finishMeditation(feeling: String) {
-        val endTime = System.currentTimeMillis()
+    fun finishMeditation(feeling: String, completedDurationSeconds: Int? = null) {
+        val endTime = if (completedDurationSeconds != null) {
+            startTime + (completedDurationSeconds * 1000L)
+        } else {
+            System.currentTimeMillis()
+        }
         viewModelScope.launch {
             val session = MeditationSessionEntity(
                 startTime = startTime,

@@ -7,7 +7,6 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -123,7 +121,7 @@ fun RippleScreen(
         timerViewModel.startTimer()
     }
 
-    // 2. 백 버튼 또는 스와이프 제스쳐를 통한 종료
+    // 2-1. 백 버튼 또는 스와이프 제스쳐를 통한 종료
     BackHandler(enabled = true) {
         showExitDialog = true
     }
@@ -133,7 +131,7 @@ fun RippleScreen(
             onConfirm = {
                 showExitDialog = false
                 timerViewModel.stopTimer() // 타이머 중지
-                meditationViewModel.finishMeditation("중도 종료") // DB 저장
+                meditationViewModel.finishMeditation("중도 종료", totalTime) // DB 저장
                 onNavigateBack()// 메인으로 돌아가기
             },
             onDismiss = {
@@ -142,7 +140,7 @@ fun RippleScreen(
         )
     }
 
-    // 2. 타이머가 시간이 다 되어 종료되었을 때의 종료
+    // 2-2. 타이머가 시간이 다 되어 종료되었을 때의 종료
     LaunchedEffect(Unit) {
         timerViewModel.timerFinishEvent.collect {
             showFeelingDialog = true
@@ -153,13 +151,13 @@ fun RippleScreen(
         FeelingInputDialog(
             onConfirm = { inputFeeling ->
                 showFeelingDialog = false
-                meditationViewModel.finishMeditation(inputFeeling) // 입력한 소감으로 DB 저장
+                meditationViewModel.finishMeditation(inputFeeling, totalTime) // 입력한 소감으로 DB 저장
                 onNavigateBack() // 메인으로 돌아가기
             },
             onDismiss = {
                 // 원한다면 소감을 안 적고 닫았을 때의 처리 (예: 빈칸으로 저장하고 닫기)
                 showFeelingDialog = false
-                meditationViewModel.finishMeditation("소감 생략")
+                meditationViewModel.finishMeditation("소감 생략", totalTime)
                 onNavigateBack()
             }
         )
