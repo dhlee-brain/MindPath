@@ -1,7 +1,9 @@
 package com.example.mindpath.ui.screens
 
+import com.example.mindpath.R
 import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
+import android.media.MediaPlayer
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
@@ -18,8 +20,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.MusicOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,6 +47,7 @@ import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -47,6 +58,7 @@ import com.example.mindpath.ui.components.ExitMeditationDialog
 import com.example.mindpath.ui.components.FeelingInputDialog
 import com.example.mindpath.ui.components.MeditationTimerBar
 import com.example.mindpath.viewmodel.MeditationViewModel
+import com.example.mindpath.viewmodel.SettingsViewModel
 import com.example.mindpath.viewmodel.TimerViewModel
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.Language
@@ -104,6 +116,7 @@ private const val IMG_SHADER_SRC = """
 fun RippleScreen(
     timerViewModel: TimerViewModel,
     meditationViewModel: MeditationViewModel = viewModel(factory = MeditationViewModel.Factory),
+    settingsViewModel: SettingsViewModel = viewModel(),
     onNavigateBack: () -> Unit
 ) {
     val timeLeft by timerViewModel.timeLeft.collectAsState()
@@ -115,6 +128,40 @@ fun RippleScreen(
     var showExitDialog by remember { mutableStateOf(false) }
     var showFeelingDialog by remember { mutableStateOf(false) }
 
+    val isBgmMuted by settingsViewModel.isBgmMuted.collectAsState()
+    val isBowlMuted by settingsViewModel.isBowlMuted.collectAsState()
+    val context = LocalContext.current
+    val bgmPlayer = remember {
+        MediaPlayer.create(context, R.raw.chamber_of_shadows).apply {
+            isLooping = true
+        }
+    }
+    val bowlPlayer = remember {
+        MediaPlayer.create(context, R.raw.singing_bowl)
+    }
+
+    // 🎵 명상 음악(BGM) 실시간 볼륨 조절 (아이콘 누를 때마다 발동)
+    LaunchedEffect(isBgmMuted) {
+        val volume = if (isBgmMuted) 0f else 1f
+        bgmPlayer?.setVolume(volume, volume)
+    }
+
+    // 🎵 종료 소리(싱잉볼) 실시간 볼륨 조절 (나중에 설정 창에서 바꿀 때 발동)
+    LaunchedEffect(isBowlMuted) {
+        val volume = if (isBowlMuted) 0f else 1f
+        bowlPlayer?.setVolume(volume, volume)
+    }
+
+    // 화면 진입 시 BGM 재생, 화면 이탈 시 메모리 해제
+    DisposableEffect(Unit) {
+        bgmPlayer?.start()
+        onDispose {
+            bgmPlayer?.stop()
+            bgmPlayer?.release()
+            bowlPlayer?.release()
+        }
+    }
+
     // 1. 타이머 시작
     LaunchedEffect(Unit) {
         meditationViewModel.startMeditation()
@@ -122,7 +169,7 @@ fun RippleScreen(
     }
 
     // 2-1. 백 버튼 또는 스와이프 제스쳐를 통한 종료
-    BackHandler(enabled = true) {
+    BackHandler {
         showExitDialog = true
     }
 
@@ -144,6 +191,11 @@ fun RippleScreen(
     LaunchedEffect(Unit) {
         timerViewModel.timerFinishEvent.collect {
             showFeelingDialog = true
+
+            if (bgmPlayer?.isPlaying == true) {
+                bgmPlayer.pause()
+            }
+            bowlPlayer?.start()
         }
     }
 
@@ -236,6 +288,22 @@ fun RippleScreen(
                 }
                 .background(Brush.verticalGradient(gradientColors))
         )
+
+        IconButton(
+            onClick = { settingsViewModel.toggleBgmMute() }, // 👈 누르면 뷰모델을 통해 DataStore 영구 저장!
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .statusBarsPadding()
+                .padding(16.dp)
+        ) {
+            Icon(
+                // 상태에 따라 아이콘 모양 변경
+                imageVector = if (isBgmMuted) Icons.Default.MusicOff else Icons.Default.MusicNote,
+                contentDescription = if (isBgmMuted) "음악 켜기" else "음악 끄기",
+                tint = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.size(32.dp)
+            )
+        }
 
         // 🌟 [추가된 레이어] 알아차림 횟수 텍스트 (중앙에서 약간 상단)
         Column(
