@@ -29,7 +29,7 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun MindPathTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,  /* isSystemInDarkTheme() - true 로 될 경우 Navigation 색 등 지정하지 않은 색들이 흐려짐 */
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false, // 동적 색상 비활성화
     content: @Composable () -> Unit
