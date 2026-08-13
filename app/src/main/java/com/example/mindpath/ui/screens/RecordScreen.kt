@@ -1,5 +1,6 @@
 package com.example.mindpath.ui.screens
 
+import android.R.attr.text
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -59,8 +60,8 @@ fun RecordScreen(
     ) {
         Text(
             text = "기록 모아보기",
+            modifier = Modifier.padding(all = 16.dp),
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(all = 16.dp)
         )
         // 1. 커스텀 색상이 적용된 달력 (어두운 테마 + 포인트 색상)
         DatePicker(
@@ -97,8 +98,8 @@ fun RecordScreen(
             ) {
                 Text(
                     text = "이날은 기록된 명상 세션이 없어요.",
+                    color = Color.DarkGray, // 튀지 않는 색상으로 표시
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.DarkGray // 튀지 않는 색상으로 표시
                 )
             }
         } else {
@@ -169,8 +170,8 @@ fun SessionItem(
             ) {
                 Text(
                     text = "세션 ${index + 1} - $formattedTime",
+                    color = Color.Black,
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.Black
                 )
 
                 // 💡 확장 여부를 알려주는 화살표 아이콘
@@ -221,7 +222,10 @@ fun TouchRecordDetail(
             val height = size.height
 
             val trackGradient = Brush.horizontalGradient(
-                colors = listOf(Color(0xFF00B4DB), Color(0xFF005C97))
+                colors = listOf(
+                    Color(0xFF00B4DB),
+                    Color(0xFF005C97)
+                )
             )
 
             // 1. 배경 트랙
@@ -237,7 +241,8 @@ fun TouchRecordDetail(
             touchRecords.forEach { record ->
                 val elapsedMs = record.touchedTime - session.startTime
                 // 전체 시간 대비 터치된 시간의 비율 계산 (0.0 ~ 1.0)
-                val fraction = (elapsedMs.toFloat() / totalDurationMs.toFloat()).coerceIn(0f, 1f)
+                val fraction = (elapsedMs.toFloat() / totalDurationMs.toFloat())
+                    .coerceIn(0f, 1f)
                 val x = fraction * width
 
                 drawLine(
@@ -256,16 +261,32 @@ fun TouchRecordDetail(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = "00:00", color = Color.Black, style = MaterialTheme.typography.bodySmall)
-            Text(text = endLabel, color = Color.Black, style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = "00:00",
+                color = Color.Black,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = endLabel,
+                color = Color.Black,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // 알아차림 횟수 및 소요 시간
-        Text(text = "알아차림 횟수 : ${count}번", color = Color.Black, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = "알아차림 횟수 : ${count}번",
+            color = Color.Black,
+            style = MaterialTheme.typography.bodyMedium
+        )
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = "소요 시간 : $durationText", color = Color.Black, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = "소요 시간 : $durationText",
+            color = Color.Black,
+            style = MaterialTheme.typography.bodyMedium
+        )
 
         Spacer(modifier = Modifier.height(4.dp))
         val feelingText = session.feelingRecord?.takeIf { it.isNotBlank() } ?: "기록이 없습니다."
