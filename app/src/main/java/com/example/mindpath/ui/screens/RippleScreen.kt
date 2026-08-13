@@ -49,10 +49,13 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mindpath.ui.components.ExitMeditationDialog
 import com.example.mindpath.ui.components.FeelingInputDialog
@@ -62,6 +65,7 @@ import com.example.mindpath.viewmodel.SettingsViewModel
 import com.example.mindpath.viewmodel.TimerViewModel
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.Language
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @Language("AGSL")
 private const val IMG_SHADER_SRC = """
@@ -131,6 +135,9 @@ fun RippleScreen(
     val isBgmMuted by settingsViewModel.isBgmMuted.collectAsState()
     val isBowlMuted by settingsViewModel.isBowlMuted.collectAsState()
     val context = LocalContext.current
+    val view = LocalView.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     val bgmPlayer = remember {
         MediaPlayer.create(context, R.raw.chamber_of_shadows).apply {
             isLooping = true
@@ -138,6 +145,41 @@ fun RippleScreen(
     }
     val bowlPlayer = remember {
         MediaPlayer.create(context, R.raw.singing_bowl)
+    }
+
+    // 1) 명상 중 화면 꺼짐 방지
+    DisposableEffect(Unit) {
+        view.keepScreenOn = true
+        onDispose { view.keepScreenOn = false }
+    }
+
+// 2) 기존: BGM 시작 + 리소스 해제
+    DisposableEffect(Unit) {
+        bgmPlayer?.start()
+        onDispose {
+            bgmPlayer?.stop()
+            bgmPlayer?.release()
+            bowlPlayer?.release()
+        }
+    }
+
+// 3) 백그라운드 진입 시 BGM 일시정지
+    DisposableEffect(lifecycleOwner) {
+        var wasPlaying = false
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> {
+                    wasPlaying = bgmPlayer?.isPlaying == true
+                    if (wasPlaying) bgmPlayer?.pause()
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                    if (wasPlaying) bgmPlayer?.start()
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     // 🎵 명상 음악(BGM) 실시간 볼륨 조절 (아이콘 누를 때마다 발동)
@@ -178,7 +220,7 @@ fun RippleScreen(
             onConfirm = {
                 showExitDialog = false
                 timerViewModel.stopTimer() // 타이머 중지
-                meditationViewModel.finishMeditation("중도 종료", totalTime) // DB 저장
+                meditationViewModel.finishMeditation("중도 종료", totalTime - timeLeft) // DB 저장
                 onNavigateBack()// 메인으로 돌아가기
             },
             onDismiss = {

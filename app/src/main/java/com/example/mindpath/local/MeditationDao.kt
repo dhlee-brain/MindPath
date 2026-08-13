@@ -3,6 +3,7 @@ package com.example.mindpath.local
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MeditationDao {
@@ -13,7 +14,7 @@ interface MeditationDao {
     suspend fun insertDistractionRecords(records: List<TouchRecordEntity>)
 
     @Query("SELECT * FROM meditation_sessions ORDER BY startTime DESC")
-    suspend fun getAllSessions(): List<MeditationSessionEntity>
+    fun getAllSessions(): Flow<List<MeditationSessionEntity>>
 
     @Query("SELECT * FROM touch_records WHERE sessionId = :sessionId")
     suspend fun getTouchRecordsForSession(sessionId: Long): List<TouchRecordEntity>

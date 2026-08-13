@@ -42,6 +42,9 @@ android {
 }
 
 dependencies {
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("com.kizitonwose.calendar:compose:2.6.0")
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.ktx)

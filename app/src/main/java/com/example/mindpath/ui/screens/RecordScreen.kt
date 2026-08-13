@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
@@ -18,107 +19,138 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mindpath.local.MeditationSessionEntity
 import com.example.mindpath.local.TouchRecordEntity
+import com.example.mindpath.ui.components.MeditationCalendar
+import com.example.mindpath.ui.components.MeditationSummaryCard
+import com.example.mindpath.ui.components.SessionItem
 import com.example.mindpath.ui.theme.Grey200
 import com.example.mindpath.viewmodel.MeditationViewModel
+import com.example.mindpath.viewmodel.toLocalDate
+import kotlinx.coroutines.flow.first
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+private const val HEADER_ITEM_COUNT = 4  // 제목, 요약카드, 달력, 구분선
+
 @Composable
 fun RecordScreen(
     modifier: Modifier = Modifier,
     viewModel: MeditationViewModel = viewModel(factory = MeditationViewModel.Factory)
 ) {
-    val allSessions by viewModel.allSessions.collectAsState(initial = emptyList())
-    val touchRecords by viewModel.selectedSessionTouchRecords.collectAsState(initial = emptyList())
+    val allSessions by viewModel.allSessions.collectAsState()
+    val touchRecords by viewModel.selectedSessionTouchRecords.collectAsState()
+    val totalMillis by viewModel.totalMeditationMillis.collectAsState()
+    val totalDays by viewModel.totalMeditationDays.collectAsState()
+    val meditatedDates by viewModel.meditatedDates.collectAsState()
 
-    // 달력 상태: 초기값 오늘 날짜
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = System.currentTimeMillis()
-    )
-    val selectedDateMillis = datePickerState.selectedDateMillis ?: System.currentTimeMillis()
-
-    // 열려있는(확장된) 세션 카드의 ID 상태 관리
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var expandedSessionId by remember { mutableStateOf<Long?>(null) }
 
-    LaunchedEffect(Unit) {
-        viewModel.loadAllSessions()
+    val listState = rememberLazyListState()
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
+
+
+    val filteredSessions = remember(allSessions, selectedDate) {
+        allSessions
+            .filter { it.startTime.toLocalDate() == selectedDate }
+            .sortedByDescending { it.startTime }
     }
 
-    // 선택된 날짜와 동일한 세션만 필터링
-    val filteredSessions = allSessions.filter { session ->
-        isSameDay(session.startTime, selectedDateMillis)
-    }.sortedByDescending { it.startTime }
+    // 💡 날짜 선택 시 자동 스크롤: 첫 카드가 화면 45% 지점에 오도록
+    LaunchedEffect(selectedDate, filteredSessions.size) {
+        if (filteredSessions.isEmpty()) return@LaunchedEffect
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
+        // 💡 날짜가 바뀌면 아이템 개수도 바뀜. 새 레이아웃이 반영될 때까지 대기.
+        //    이게 없으면 아래 layoutInfo가 '이전 날짜' 기준의 낡은 값이 됩니다.
+        val expectedCount = HEADER_ITEM_COUNT + filteredSessions.size + 1  // +1 = 하단 Spacer
+        snapshotFlow { listState.layoutInfo.totalItemsCount }
+            .first { it == expectedCount }
+
+        val info = listState.layoutInfo
+        val last = info.visibleItemsInfo.lastOrNull() ?: return@LaunchedEffect
+
+        // 마지막 아이템의 '아래쪽 끝'까지 화면 안에 들어와 있다 = 볼 게 더 없다
+        val allContentVisible = last.index == info.totalItemsCount - 1 &&
+                last.offset + last.size <= info.viewportEndOffset
+        if (allContentVisible) return@LaunchedEffect
+
+        val targetOffsetPx = with(density) {
+            (configuration.screenHeightDp.dp * 0.45f).roundToPx()
+        }
+        listState.animateScrollToItem(HEADER_ITEM_COUNT, -targetOffsetPx)
+    }
+
+    LazyColumn(
+        state = listState,
+        modifier = modifier.fillMaxSize()
     ) {
-        Text(
-            text = "기록 모아보기",
-            modifier = Modifier.padding(all = 16.dp),
-            style = MaterialTheme.typography.titleLarge,
-        )
-        // 1. 커스텀 색상이 적용된 달력 (어두운 테마 + 포인트 색상)
-        DatePicker(
-            state = datePickerState,
-            modifier = Modifier.fillMaxWidth(),
-            title = null,          // 💡 "날짜 선택" 등의 상단 타이틀 제거
-            headline = null,       // 💡 "2026년 6월 19일" 등의 선택된 날짜 텍스트 제거
-            showModeToggle = false, // 💡 우측 상단의 연필 아이콘(입력 모드 전환) 제거 (선택 사항)
-            colors = DatePickerDefaults.colors(
-                containerColor = Color(0xFFFAF5FF),
-                weekdayContentColor = Color.DarkGray,
-                dayContentColor = Color.Black,
-                selectedDayContainerColor = Color(0xFF00B4DB), // 포인트 색상
-                selectedDayContentColor = Color.White,
-                todayContentColor = Color(0xFF00B4DB),
-                todayDateBorderColor = Color(0xFF00B4DB),
-                yearContentColor = Color.Black,
-                currentYearContentColor = Color(0xFF00B4DB),
-                selectedYearContainerColor = Color(0xFF00B4DB),
-                selectedYearContentColor = Color.White
+        item(key = "title") {
+            Text(
+                text = "기록 모아보기",
+                modifier = Modifier.padding(16.dp),
+                style = MaterialTheme.typography.titleLarge
             )
-        )
+        }
 
-        HorizontalDivider(modifier = Modifier.height(1.dp))
+        item(key = "summary") {
+            MeditationSummaryCard(
+                totalMillis = totalMillis,
+                totalDays = totalDays
+            )
+            Spacer(Modifier.height(12.dp))
+        }
 
-        // 2. 선택된 날짜의 세션 목록
+        item(key = "calendar") {
+            MeditationCalendar(
+                selectedDate = selectedDate,
+                meditatedDates = meditatedDates,
+                onDateSelected = { date ->
+                    selectedDate = date
+                    expandedSessionId = null   // 날짜 바뀌면 펼침 상태 초기화
+                }
+            )
+        }
+
+        item(key = "divider") {
+            HorizontalDivider(thickness = 1.dp)
+            Spacer(Modifier.height(6.dp))
+        }
+
         if (filteredSessions.isEmpty()) {
-            // 💡 데이터가 없을 때 띄워줄 화면
-            Box(
-                modifier = Modifier
-                    .fillMaxSize() // 남은 공간을 모두 채움
-                    .padding(bottom = 32.dp), // 달력과 너무 붙지 않게 시각적 중앙을 맞추기 위한 패딩
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "이날은 기록된 명상 세션이 없어요.",
-                    color = Color.DarkGray, // 튀지 않는 색상으로 표시
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+            item(key = "empty") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "이날은 기록된 명상 세션이 없어요.",
+                        color = Color.DarkGray,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-            ) {
-                itemsIndexed(filteredSessions) { index, session ->
-                    val isExpanded = expandedSessionId == session.id
+            itemsIndexed(
+                items = filteredSessions,
+                key = { _, session -> session.id }
+            ) { index, session ->
+                val isExpanded = expandedSessionId == session.id
+                val reversedIndex = filteredSessions.size - index - 1
 
-                    // 💡 추가된 부분: 전체 개수에서 현재 인덱스를 빼서 역순 번호 생성
-                    // 예) 총 3개일 때 -> index 0은 2(세션 3), index 2는 0(세션 1)이 됨
-                    val reversedIndex = filteredSessions.size - index - 1
-
-                    Spacer(modifier = Modifier.height(6.dp))
+                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                     SessionItem(
                         session = session,
-                        index = reversedIndex, // 💡 기존 index 대신 역순 인덱스 전달
+                        index = reversedIndex,
                         isExpanded = isExpanded,
                         touchRecords = if (isExpanded) touchRecords else emptyList(),
                         onClick = {
@@ -130,178 +162,9 @@ fun RecordScreen(
                             }
                         }
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
                 }
             }
+            item(key = "bottom_spacer") { Spacer(Modifier.height(32.dp)) }
         }
     }
-}
-
-@Composable
-fun SessionItem(
-    session: MeditationSessionEntity,
-    index: Int,
-    isExpanded: Boolean,
-    touchRecords: List<TouchRecordEntity>,
-    onClick: () -> Unit
-) {
-    // 💡 열림/닫힘 상태에 따른 화살표 회전 각도 애니메이션 처리 (0도 <-> 180도)
-    val rotationState by animateFloatAsState(
-        targetValue = if (isExpanded) 180f else 0f,
-        label = "ExpandIconRotation"
-    )
-
-    val timeFormatter = remember { SimpleDateFormat("a hh:mm", Locale.KOREAN) }
-    val formattedTime = timeFormatter.format(Date(session.startTime))
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // 💡 타이틀과 아이콘을 가로로 배치하기 위해 Row 사용
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween // 텍스트는 왼쪽, 아이콘은 오른쪽 끝으로 밀어줌
-            ) {
-                Text(
-                    text = "세션 ${index + 1} - $formattedTime",
-                    color = Color.Black,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-
-                // 💡 확장 여부를 알려주는 화살표 아이콘
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (isExpanded) "접기" else "펼치기",
-                    tint = Color.Gray,
-                    modifier = Modifier.rotate(rotationState) // 애니메이션 상태 적용
-                )
-            }
-
-            // 카드를 눌렀을 때만 상세 정보 노출
-            if (isExpanded) {
-                Spacer(modifier = Modifier.height(16.dp))
-                TouchRecordDetail(
-                    session = session,
-                    touchRecords = touchRecords
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun TouchRecordDetail(
-    session: MeditationSessionEntity,
-    touchRecords: List<TouchRecordEntity>,
-    modifier: Modifier = Modifier
-) {
-    // 소요 시간 계산
-    val totalDurationMs = (session.endTime - session.startTime).coerceAtLeast(1L)
-    val totalSeconds = totalDurationMs / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-
-    val endLabel = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-    val durationText = "${minutes}분 ${seconds}초"
-    val count = touchRecords.size
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        // 실제 데이터가 적용된 바
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(15.dp)
-        ) {
-            val width = size.width
-            val height = size.height
-
-            val trackGradient = Brush.horizontalGradient(
-                colors = listOf(
-                    Color(0xFF00B4DB),
-                    Color(0xFF005C97)
-                )
-            )
-
-            // 1. 배경 트랙
-            drawLine(
-                brush = trackGradient,
-                start = Offset(0f, height / 2),
-                end = Offset(width, height / 2),
-                strokeWidth = height,
-                cap = StrokeCap.Round
-            )
-
-            // 2. 실제 터치된 시간에 맞춰 선 그리기
-            touchRecords.forEach { record ->
-                val elapsedMs = record.touchedTime - session.startTime
-                // 전체 시간 대비 터치된 시간의 비율 계산 (0.0 ~ 1.0)
-                val fraction = (elapsedMs.toFloat() / totalDurationMs.toFloat())
-                    .coerceIn(0f, 1f)
-                val x = fraction * width
-
-                drawLine(
-                    color = Color.LightGray,
-                    start = Offset(x, 0f),
-                    end = Offset(x, height),
-                    strokeWidth = 1.dp.toPx()
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // 바 양 끝 시작/종료 시간
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "00:00",
-                color = Color.Black,
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                text = endLabel,
-                color = Color.Black,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 알아차림 횟수 및 소요 시간
-        Text(
-            text = "알아차림 횟수 : ${count}번",
-            color = Color.Black,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "소요 시간 : $durationText",
-            color = Color.Black,
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-        val feelingText = session.feelingRecord?.takeIf { it.isNotBlank() } ?: "기록이 없습니다."
-        Text(
-            text = "명상 후 느낌 : $feelingText",
-            color = Color.Black,
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
-}
-
-// 두 Timestamp 가 같은 날짜인지 판단하는 헬퍼 함수
-fun isSameDay(time1: Long, time2: Long): Boolean {
-    val cal1 = Calendar.getInstance().apply { timeInMillis = time1 }
-    val cal2 = Calendar.getInstance().apply { timeInMillis = time2 }
-    return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-            cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
 }

@@ -1,5 +1,6 @@
 package com.example.mindpath.ui.screens
 
+import android.R.attr.thickness
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -8,11 +9,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -117,34 +121,42 @@ fun OnboardingScreen(onFinish: () -> Unit) {
 
 @Composable
 fun OnboardingPageLayout(pageData: OnboardingPageData) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        // 상단 50%: 이미지
-        Box(modifier = Modifier.weight(1f)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
             Image(
-                painter = painterResource(id = pageData.imageRes),
+                painter = painterResource(pageData.imageRes),
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .aspectRatio(0.8f)        // 💡 4:5 고정
+                    .fillMaxHeight(),          // 높이를 채우고 폭은 비율대로
                 contentScale = ContentScale.Crop
             )
         }
 
         HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
 
-        // 하단 50%: 커스텀 텍스트 콘텐츠
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(24.dp),
+            modifier = Modifier.weight(1f).fillMaxWidth().padding(24.dp),
             verticalArrangement = Arrangement.Center
-        ) {
-            pageData.content() // 주입받은 Composable 실행
-        }
+        ) { pageData.content() }
     }
 }
 
 @Composable
-fun PageIndicator(pageCount: Int, currentPage: Int, modifier: Modifier = Modifier) {
+fun PageIndicator(
+    pageCount: Int,
+    currentPage: Int,
+    modifier: Modifier = Modifier
+) {
     Row(
         horizontalArrangement = Arrangement.Center,
         modifier = modifier
