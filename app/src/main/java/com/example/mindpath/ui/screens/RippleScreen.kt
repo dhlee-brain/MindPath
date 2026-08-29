@@ -194,16 +194,6 @@ fun RippleScreen(
         bowlPlayer?.setVolume(volume, volume)
     }
 
-    // 화면 진입 시 BGM 재생, 화면 이탈 시 메모리 해제
-    DisposableEffect(Unit) {
-        bgmPlayer?.start()
-        onDispose {
-            bgmPlayer?.stop()
-            bgmPlayer?.release()
-            bowlPlayer?.release()
-        }
-    }
-
     // 1. 타이머 시작
     LaunchedEffect(Unit) {
         meditationViewModel.startMeditation()
