@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.example.mindpath.ui.screens.angleDeg
@@ -49,6 +50,7 @@ private data class Particle(val position: Offset, val createdAt: Long)
 fun DialStartButton(
     modifier: Modifier = Modifier,
     startThresholdDegrees: Float = 360f,
+    diameter: Dp = 288.dp,
     onStart: () -> Unit
 ) {
     var size by remember { mutableStateOf(IntSize.Zero) }
@@ -77,7 +79,7 @@ fun DialStartButton(
 
     Box(
         modifier = modifier
-            .size(288.dp)
+            .size(diameter)
             .clip(CircleShape)
             .background(circleGradient)
             .onSizeChanged { size = it }

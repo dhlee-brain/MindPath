@@ -15,14 +15,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        splashScreen.setOnExitAnimationListener { provider ->
-            ObjectAnimator.ofFloat(provider.view, View.ALPHA, 1f, 0f).apply {
-                duration = 250L
-                interpolator = DecelerateInterpolator()
-                doOnEnd { provider.remove() }   // ← 빼먹으면 화면이 멈춥니다
-                start()
-            }
-        }
         enableEdgeToEdge()
         setContent {
             MindPathTheme {

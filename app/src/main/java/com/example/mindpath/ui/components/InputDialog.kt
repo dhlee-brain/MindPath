@@ -3,6 +3,7 @@ package com.example.mindpath.ui.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -50,42 +51,100 @@ fun ExitMeditationDialog(
 @Composable
 fun FeelingInputDialog(
     onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    enabled: Boolean,
 ) {
     var feeling by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        // 🌟 작성 중 밖을 터치해서 날아가는 참사를 막음 (이전 대화에서 적용했던 속성)
         properties = DialogProperties(dismissOnClickOutside = false),
-        title = {
-            Text("명상이 끝났습니다.", color = TextPrimaryColor)
-        },
+        title = { FeelingInputTitle() },
         text = {
-            Column {
-                Text("지금의 감각이나 감정을 짧게 남겨보세요.", color = TextSecondaryColor)
-                Spacer(modifier = Modifier.height(16.dp))
-                TextField(
-                    value = feeling,
-                    onValueChange = { feeling = it },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = TextFieldBgColor,   // 바탕보다 덜 어두운 색
-                        unfocusedContainerColor = TextFieldBgColor, // 바탕보다 덜 어두운 색
-                        focusedTextColor = TextPrimaryColor,
-                        unfocusedTextColor = TextPrimaryColor,
-                        cursorColor = TextPrimaryColor,
-                        focusedIndicatorColor = Color.Transparent,  // 밑줄 제거로 깔끔하게
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    shape = MaterialTheme.shapes.medium
-                )
-            }
+            FeelingInputContent(
+                feeling = feeling,
+                onFeelingChange = { feeling = it },
+                enabled = enabled,
+            )
         },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(feeling) }) {
-                Text("완료", color = Color(0xFF64FFDA))
-            }
-        },
+        confirmButton = { FeelingInputConfirmButton(onConfirm = { onConfirm(feeling) }) },
         containerColor = DialogBgColor
     )
+}
+
+
+@Composable
+fun FeelingInputPreviewCard(
+    feeling: String,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        color = DialogBgColor,
+        shape = MaterialTheme.shapes.extraLarge,
+        shadowElevation = 6.dp,
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            FeelingInputTitle()
+            Spacer(modifier = Modifier.height(16.dp))
+            FeelingInputContent(
+                feeling = feeling,
+                onFeelingChange = {},
+                enabled = false,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                FeelingInputConfirmButton(onConfirm = {}, enabled = false)
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun FeelingInputTitle() {
+    Text("세션이 종료되었어요", color = TextPrimaryColor)
+}
+
+@Composable
+private fun FeelingInputContent(
+    feeling: String,
+    onFeelingChange: (String) -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text("지금의 감각이나 감정을 짧게 남겨보세요.", color = TextSecondaryColor)
+        Spacer(modifier = Modifier.height(16.dp))
+        TextField(
+            enabled = enabled,
+            value = feeling,
+            onValueChange = onFeelingChange,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = TextFieldBgColor,
+                unfocusedContainerColor = TextFieldBgColor,
+                focusedTextColor = TextPrimaryColor,
+                unfocusedTextColor = TextPrimaryColor,
+                cursorColor = TextPrimaryColor,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledContainerColor = TextFieldBgColor,
+                disabledTextColor = TextPrimaryColor,
+                disabledIndicatorColor = Color.Transparent,
+            ),
+            shape = MaterialTheme.shapes.medium,
+            minLines = 5,
+            maxLines = 8,
+        )
+    }
+}
+
+@Composable
+private fun FeelingInputConfirmButton(
+    onConfirm: () -> Unit,
+    enabled: Boolean = true,
+) {
+    TextButton(onClick = onConfirm, enabled = enabled) {
+        Text("완료", color = Color(0xFF64FFDA))
+    }
 }

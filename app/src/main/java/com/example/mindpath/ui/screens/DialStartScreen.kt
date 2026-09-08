@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mindpath.ui.components.DialStartButton
-import com.example.mindpath.ui.components.PickHourMinuteSecondFun
+import com.example.mindpath.ui.components.MinuteSecondPicker
 import com.example.mindpath.ui.theme.Grey100
 import com.example.mindpath.ui.theme.Grey200
 import com.example.mindpath.viewmodel.MeditationViewModel
@@ -87,6 +87,7 @@ fun DialStartScreen(
             Icon(
                 imageVector = Icons.Default.Info, // HelpOutline이나 다른 아이콘으로 변경 가능
                 contentDescription = "도움말",
+                modifier = Modifier.fillMaxSize(),
                 tint = Color.Gray // 앱 테마에 맞게 색상 조절
             )
         }
@@ -206,15 +207,13 @@ fun DialStartScreen(
                     Surface(
                         modifier = Modifier.wrapContentWidth().wrapContentHeight(),
                         shape = MaterialTheme.shapes.large,
-                        tonalElevation = AlertDialogDefaults.TonalElevation,
-                        color = Grey100
+                        shadowElevation = 6.dp,
+                        color = Color.White
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            PickHourMinuteSecondFun(
+                            MinuteSecondPicker(
                                 initialTotalSeconds = totalTime,
-                                onTimeChange = { newSeconds ->
-                                    tempSeconds = newSeconds
-                                }
+                                onTimeChange = { newSeconds -> tempSeconds = newSeconds }
                             )
                             Spacer(modifier = Modifier.height(24.dp))
                             TextButton(
@@ -224,7 +223,7 @@ fun DialStartScreen(
                                 },
                                 modifier = Modifier.align(Alignment.End)
                             ) {
-                                Text("시간 선택")
+                                Text("시간 선택", color = Color(0xFF6366F1))
                             }
                         }
                     }

@@ -49,6 +49,7 @@ fun RecordScreen(
     val totalMillis by viewModel.totalMeditationMillis.collectAsState()
     val totalDays by viewModel.totalMeditationDays.collectAsState()
     val meditatedDates by viewModel.meditatedDates.collectAsState()
+    val touchRecordsBySession by viewModel.touchRecordsBySession.collectAsState()
 
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var expandedSessionId by remember { mutableStateOf<Long?>(null) }
@@ -64,20 +65,29 @@ fun RecordScreen(
             .sortedByDescending { it.startTime }
     }
 
-    // 💡 날짜 선택 시 자동 스크롤: 첫 카드가 화면 45% 지점에 오도록
+    var lastScrolledDate by remember { mutableStateOf<LocalDate?>(null) }
+
     LaunchedEffect(selectedDate, filteredSessions.size) {
+        // 첫 진입: 스크롤 없이 현재 날짜만 기록
+        if (lastScrolledDate == null) {
+            lastScrolledDate = selectedDate
+            return@LaunchedEffect
+        }
+
+        // 날짜가 안 바뀐 재실행(데이터 로드, 세션 추가 등)이면 무시
+        if (lastScrolledDate == selectedDate) return@LaunchedEffect
+
+        lastScrolledDate = selectedDate
+
         if (filteredSessions.isEmpty()) return@LaunchedEffect
 
-        // 💡 날짜가 바뀌면 아이템 개수도 바뀜. 새 레이아웃이 반영될 때까지 대기.
-        //    이게 없으면 아래 layoutInfo가 '이전 날짜' 기준의 낡은 값이 됩니다.
-        val expectedCount = HEADER_ITEM_COUNT + filteredSessions.size + 1  // +1 = 하단 Spacer
+        val expectedCount = HEADER_ITEM_COUNT + filteredSessions.size + 1
         snapshotFlow { listState.layoutInfo.totalItemsCount }
             .first { it == expectedCount }
 
         val info = listState.layoutInfo
         val last = info.visibleItemsInfo.lastOrNull() ?: return@LaunchedEffect
 
-        // 마지막 아이템의 '아래쪽 끝'까지 화면 안에 들어와 있다 = 볼 게 더 없다
         val allContentVisible = last.index == info.totalItemsCount - 1 &&
                 last.offset + last.size <= info.viewportEndOffset
         if (allContentVisible) return@LaunchedEffect
@@ -152,14 +162,9 @@ fun RecordScreen(
                         session = session,
                         index = reversedIndex,
                         isExpanded = isExpanded,
-                        touchRecords = if (isExpanded) touchRecords else emptyList(),
+                        touchRecords = touchRecordsBySession[session.id].orEmpty(),
                         onClick = {
-                            if (isExpanded) {
-                                expandedSessionId = null
-                            } else {
-                                expandedSessionId = session.id
-                                viewModel.loadTouchRecords(session.id)
-                            }
+                            expandedSessionId = if (isExpanded) null else session.id
                         }
                     )
                 }

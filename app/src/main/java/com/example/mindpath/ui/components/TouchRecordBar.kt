@@ -6,6 +6,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,67 +26,62 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import com.example.mindpath.local.MeditationSessionEntity
+import com.example.mindpath.local.TouchRecordEntity
+import java.util.Locale
 
-@Preview
 @Composable
-fun TouchRecordBar(modifier: Modifier = Modifier) {
-    Canvas(
-        modifier = modifier
-            .width(200.dp)
-            .height(15.dp)
-    ) {
-        // 버튼을 누를 때마다 이 리스트를 새로 가라엎으면 선 위치가 바뀝니다.
-        val linePositions = mutableListOf(0.2f, 0.5f, 0.7f, 0.9f)
-        val width = size.width
-        val height = size.height
+fun TouchRecordBar(
+    session: MeditationSessionEntity,
+    touchRecords: List<TouchRecordEntity>,
+    modifier: Modifier = Modifier
+) {
+    val totalDurationMs = (session.endTime - session.startTime).coerceAtLeast(1L)
+    val totalSeconds = totalDurationMs / 1000
+    val endLabel = String.format(
+        Locale.getDefault(), "%02d:%02d", totalSeconds / 60, totalSeconds % 60
+    )
 
-        val trackGradient = Brush.horizontalGradient(
-            colors = listOf(Color(0xFF00B4DB), Color(0xFF005C97))
-            // colors = listOf(Color(0xFF005C97), Color(0xFF363795))
-        )
-
-        // 1. 배경 트랙 (희미한 회색)
-        drawLine(
-            brush = trackGradient,
-            start = Offset(0f, height / 2),
-            end = Offset(width, height / 2),
-            strokeWidth = height,
-            cap = StrokeCap.Round
-        )
-        linePositions.forEach { positionFraction ->
-            // 전체 가로 길이(width)에 비율을 곱해 정확한 X 좌표를 계산합니다.
-            val x = positionFraction * width
-
-            drawLine(
-                color = Color.LightGray,
-                start = Offset(x, 0f),       // 선의 시작점 (맨 위)
-                end = Offset(x, height),     // 선의 끝점 (맨 아래)
-                strokeWidth = 1.dp.toPx()    // 1dp를 픽셀(px)로 변환
-            )
-        }
-    }
-}
-
-@Preview(name = "In Parent Screen", widthDp = 248)
-@Composable
-fun TouchRecordBarPreview() {
-    // 실제 앱 환경처럼 어두운 Surface나 Box로 감싸줍니다.
-    Surface(color = Color(0xFFEEEEEE)) { // https://materialui.co/colors - Grey 200
-        Card(
+    Column(modifier = modifier.fillMaxWidth()) {
+        Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+                .height(15.dp)
         ) {
-            Text(
-                text = "명상 기록",
-                color = Color.Black
+            val width = size.width
+            val height = size.height
+
+            drawLine(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(Color(0xFF00B4DB), Color(0xFF005C97))
+                ),
+                start = Offset(0f, height / 2),
+                end = Offset(width, height / 2),
+                strokeWidth = height,
+                cap = StrokeCap.Round
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            touchRecords.forEach { record ->
+                val elapsedMs = record.touchedTime - session.startTime
+                val fraction = (elapsedMs.toFloat() / totalDurationMs.toFloat())
+                    .coerceIn(0f, 1f)
+                drawLine(
+                    color = Color.LightGray,
+                    start = Offset(fraction * width, 0f),
+                    end = Offset(fraction * width, height),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+        }
 
-            // 테스트할 실제 컴포넌트
-            TouchRecordBar(Modifier.fillMaxWidth().padding(horizontal=20.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("00:00", color = Color.Black, style = MaterialTheme.typography.bodySmall)
+            Text(endLabel, color = Color.Black, style = MaterialTheme.typography.bodySmall)
         }
     }
 }

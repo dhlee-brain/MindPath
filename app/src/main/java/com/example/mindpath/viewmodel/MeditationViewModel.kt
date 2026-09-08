@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.toSet
@@ -20,6 +22,7 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import kotlin.collections.emptyMap
 
 class MeditationViewModel(private val repository: MeditationRepository) : ViewModel() {
     private var startTime: Long = 0
@@ -51,6 +54,16 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
+
+    // MeditationViewModel
+    val touchRecordsBySession: StateFlow<Map<Long, List<TouchRecordEntity>>> =
+        allSessions
+            .flatMapLatest { sessions ->
+                if (sessions.isEmpty()) flowOf(emptyMap())
+                else repository.getTouchRecordsForSessions(sessions.map { it.id })
+                    .map { records -> records.groupBy { it.sessionId } }
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
     fun startMeditation() {
         startTime = System.currentTimeMillis()
         currentTouchRecords.clear()
