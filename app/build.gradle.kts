@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mindpath"
+    namespace = "com.dhlee.mindpath"
     compileSdk = 36
 
 
     defaultConfig {
-        applicationId = "com.example.mindpath"
+        applicationId = "com.dhlee.mindpath"
         minSdk = 33
         targetSdk = 36
         versionCode = 1
