@@ -35,9 +35,6 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
         repository.getAllSessions()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    private val _selectedSessionTouchRecords = MutableStateFlow<List<TouchRecordEntity>>(emptyList())
-    val selectedSessionTouchRecords: StateFlow<List<TouchRecordEntity>> = _selectedSessionTouchRecords
-
     /** 총 명상 시간 (ms) */
     val totalMeditationMillis: StateFlow<Long> = allSessions
         .map { sessions -> sessions.sumOf { (it.endTime - it.startTime).coerceAtLeast(0L) } }
@@ -92,12 +89,6 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
             }
             repository.insertTouchRecords(records)
             // 💡 updateAllSessions() 호출 삭제 — Room Flow가 알아서 갱신
-        }
-    }
-
-    fun loadTouchRecords(sessionId: Long) {
-        viewModelScope.launch {
-            _selectedSessionTouchRecords.value = repository.getTouchRecordsForSession(sessionId)
         }
     }
 

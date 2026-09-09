@@ -29,7 +29,6 @@ fun RecordScreen(
     viewModel: MeditationViewModel = viewModel(factory = MeditationViewModel.Factory)
 ) {
     val allSessions by viewModel.allSessions.collectAsState()
-    val touchRecords by viewModel.selectedSessionTouchRecords.collectAsState()
     val totalMillis by viewModel.totalMeditationMillis.collectAsState()
     val totalDays by viewModel.totalMeditationDays.collectAsState()
     val meditatedDates by viewModel.meditatedDates.collectAsState()

@@ -16,9 +16,6 @@ interface MeditationDao {
     @Query("SELECT * FROM meditation_sessions ORDER BY startTime DESC")
     fun getAllSessions(): Flow<List<MeditationSessionEntity>>
 
-    @Query("SELECT * FROM touch_records WHERE sessionId = :sessionId")
-    suspend fun getTouchRecordsForSession(sessionId: Long): List<TouchRecordEntity>
-
     @Query("SELECT * FROM touch_records WHERE sessionId IN (:sessionIds)")
     fun getTouchRecordsForSessions(sessionIds: List<Long>): Flow<List<TouchRecordEntity>>
 }

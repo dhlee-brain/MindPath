@@ -13,9 +13,6 @@ class MeditationRepository(private val meditationDao: MeditationDao) {
 
     fun getAllSessions(): Flow<List<MeditationSessionEntity>>
     = meditationDao.getAllSessions()
-    suspend fun getTouchRecordsForSession(sessionId: Long): List<TouchRecordEntity> {
-        return meditationDao.getTouchRecordsForSession(sessionId)
-    }
     fun getTouchRecordsForSessions(sessionIds: List<Long>): Flow<List<TouchRecordEntity>> =
         meditationDao.getTouchRecordsForSessions(sessionIds)
 }
