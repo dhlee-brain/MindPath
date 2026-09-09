@@ -55,6 +55,8 @@ import com.dhlee.mindpath.viewmodel.MeditationViewModel
 import com.dhlee.mindpath.viewmodel.SettingsViewModel
 import com.dhlee.mindpath.viewmodel.TimerViewModel
 import kotlinx.coroutines.launch
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.dhlee.mindpath.ui.components.IMG_SHADER_SRC
 
@@ -97,6 +99,25 @@ fun RippleScreen(
         }
     }
 
+    // 3) 앱이 백그라운드로 가면(전화, 다른 앱 전환 등) 싱잉볼 소리가 나지 않도록 함
+    var isAppInForeground by remember { mutableStateOf(true) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> isAppInForeground = true
+                Lifecycle.Event.ON_STOP -> {
+                    isAppInForeground = false
+                    // 백그라운드로 가는 순간 이미 재생 중이던 소리도 즉시 멈춤
+                    bowlPlayer?.let { player -> if (player.isPlaying) player.pause() }
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     // 🎵 종료 소리(싱잉볼) 실시간 볼륨 조절 (나중에 설정 창에서 바꿀 때 발동)
     LaunchedEffect(isBowlMuted) {
         val volume = if (isBowlMuted) 0f else 1f
@@ -132,7 +153,10 @@ fun RippleScreen(
     LaunchedEffect(Unit) {
         timerViewModel.timerFinishEvent.collect {
             showFeelingDialog = true
-            bowlPlayer?.start()
+            // 앱이 백그라운드 상태(예: 통화 중)라면 소리를 내지 않음
+            if (isAppInForeground) {
+                bowlPlayer?.start()
+            }
         }
     }
 
