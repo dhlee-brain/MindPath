@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -160,7 +161,8 @@ fun OnboardingScreen(onFinish: () -> Unit) {
         val pagerState = rememberPagerState(pageCount = { pages.size })
 
         // Box를 사용해 인디케이터 위치를 절대적으로 고정
-        Box(modifier = Modifier.fillMaxSize()) {
+        // safeDrawingPadding: 상태바/내비게이션 바(제스처든 3버튼이든)에 콘텐츠가 가려지지 않도록
+        Box(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
             Column(modifier = Modifier.fillMaxSize()) {
                 HorizontalPager(
                     state = pagerState,
@@ -177,20 +179,16 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                     .padding(horizontal = 15.dp)
                     .align(Alignment.BottomCenter)
             ) {
-                // 1. 인디케이터: Box의 하단 중앙에 배치
+                // 1. 인디케이터: Box의 정중앙에 배치
                 PageIndicator(
                     pageCount = pages.size,
                     currentPage = pagerState.currentPage,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 12.dp)
+                    modifier = Modifier.align(Alignment.Center)
                 )
 
-                // 2. 버튼 영역: Box의 우측 하단에 배치
+                // 2. 버튼 영역: Box의 우측 중앙에 배치 (인디케이터와 세로 중심선을 맞추기 위해 Bottom 대신 Center 정렬)
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 12.dp)
+                    modifier = Modifier.align(Alignment.CenterEnd)
                 ) {
                     val isLastPage = pagerState.currentPage == pages.size - 1
 
@@ -248,7 +246,7 @@ private fun ImagePageLayout(pageData: OnboardingPageData.ImagePage) {
             modifier = Modifier.weight(0.4f)
                 .fillMaxWidth()
                 .padding(horizontal = 30.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top // 줄 수와 무관하게 첫 줄이 항상 같은 위치에서 시작
         ) { pageData.content() }
     }
 
@@ -276,8 +274,8 @@ private fun CardPageLayout(pageData: OnboardingPageData.CardPage) {
             modifier = Modifier
                 .weight(0.4f)
                 .fillMaxWidth()
-                .padding(horizontal = 30.dp),
-            verticalArrangement = Arrangement.Center
+                .padding(horizontal = 30.dp, vertical = 24.dp), // ImagePageLayout과 동일한 여백으로 시작점 통일
+            verticalArrangement = Arrangement.Top // 줄 수와 무관하게 첫 줄이 항상 같은 위치에서 시작
         ) {
             pageData.content()
         }
