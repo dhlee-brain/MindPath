@@ -212,9 +212,13 @@ fun DialStartScreen(
                                     timerViewModel.setTime(tempSeconds)
                                     openDialog = false
                                 },
+                                enabled = tempSeconds > 0, // 0분 0초는 선택 불가
                                 modifier = Modifier.align(Alignment.End)
                             ) {
-                                Text("시간 선택", color = Color(0xFF6366F1))
+                                Text(
+                                    "시간 선택",
+                                    color = if (tempSeconds > 0) Color(0xFF6366F1) else Color.LightGray
+                                )
                             }
                         }
                     }
