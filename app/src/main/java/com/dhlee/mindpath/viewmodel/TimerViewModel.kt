@@ -19,7 +19,8 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
     // 🌟 2. MyApplication(중앙 본부)에서 미리 만들어둔 settingsRepository를 가져옴
     private val settingsRepository = (application as MyApplication).settingsRepository
 
-    private val _timerFinishEvent = Channel<Unit>()
+    // capacity를 CONFLATED로 주어, 받는 쪽(collect)이 당장 없어도 send()가 멈추지 않도록 함
+    private val _timerFinishEvent = Channel<Unit>(capacity = Channel.CONFLATED)
     val timerFinishEvent = _timerFinishEvent.receiveAsFlow()
 
     private val _isTimerRunning = MutableStateFlow(false)
