@@ -91,6 +91,7 @@ fun FeelingInputPreviewCard(
                 feeling = feeling,
                 onFeelingChange = {},
                 enabled = false,
+                minLines = 3, // 미리보기 카드라 5줄까지는 필요 없음 — 온보딩에서 잘림 방지
             )
             Spacer(modifier = Modifier.height(8.dp))
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
@@ -112,6 +113,7 @@ private fun FeelingInputContent(
     onFeelingChange: (String) -> Unit,
     enabled: Boolean,
     modifier: Modifier = Modifier,
+    minLines: Int = 5,
 ) {
     Column(modifier = modifier) {
         Text("지금의 감각이나 감정을 짧게 남겨보세요.", color = TextSecondaryColor)
@@ -133,7 +135,7 @@ private fun FeelingInputContent(
                 disabledIndicatorColor = Color.Transparent,
             ),
             shape = MaterialTheme.shapes.medium,
-            minLines = 5,
+            minLines = minLines,
             maxLines = 8,
         )
     }

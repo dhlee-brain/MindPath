@@ -11,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,6 +51,9 @@ import com.dhlee.mindpath.ui.components.RipplePreviewCard
 import com.dhlee.mindpath.ui.components.SessionItemPreviewCard
 import com.dhlee.mindpath.ui.theme.NanumHandwriting
 
+// 하단 페이지 인디케이터 + 건너뛰기/시작하기 버튼이 차지하는 높이
+private val OnboardingBottomBarHeight = 64.dp
+
 sealed interface OnboardingPageData {
     val content: @Composable () -> Unit
 
@@ -59,8 +63,6 @@ sealed interface OnboardingPageData {
     ) : OnboardingPageData
 
     data class CardPage(
-        val horizontalPadding: Dp = 30.dp,
-        val alignCardToTop: Boolean = false,
         val card: @Composable () -> Unit,
         override val content: @Composable () -> Unit
     ) : OnboardingPageData
@@ -85,23 +87,26 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                     Text("또는 잠시 방해받지 않는\n순간을 창조하고 싶을 때가\n있지는 않으신가요?")
                 },
 
-                // 2-1. 휠 — 기본 여백 24dp 사용
+                // 2-1. 휠 — 카드 영역 안에서 중앙, 고정 크기(280dp)를 기본으로 하되 좁으면 줄어듦
                 OnboardingPageData.CardPage(
                     card = {
-                        DialStartButton(
-                            onStart = {},
-                            diameter = 280.dp
-                        )
+                        BoxWithConstraints(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            DialStartButton(
+                                onStart = {},
+                                diameter = minOf(280.dp, maxHeight * 0.7f)
+                            )
+                        }
                     }
                 ) {
                     Text("원형 버튼을 360도\n시계 / 시계 반대 방향으로 회전하여\n세션을 시작해보세요.")
                 },
 
-                // 2-2. 파동 — 화면 폭 전체
+                // 2-2. 파동 — 쉐이더라 카드 영역을 가장자리까지 꽉 채움
                 OnboardingPageData.CardPage(
-                    horizontalPadding = 0.dp,
-                    alignCardToTop = true,
-                    card = { RipplePreviewCard(modifier = Modifier.fillMaxHeight(0.7f)) }
+                    card = { RipplePreviewCard(modifier = Modifier.fillMaxSize()) }
                 ) {
                     Text("세션 시작 후 - 부정적인 생각이 날 때,")
                     Text("또는 생각에 빠져있다가 알아차렸을 때\n화면을 터치해 보세요.")
@@ -113,7 +118,9 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                     card = {
                         FeelingInputPreviewCard(
                             feeling = "오늘은 조금 편안했어요",
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 30.dp)
                         )
                     }
                 ) {
@@ -122,7 +129,13 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 },
 
                 OnboardingPageData.CardPage(
-                    card = { SessionItemPreviewCard(modifier = Modifier.fillMaxWidth()) }
+                    card = {
+                        SessionItemPreviewCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 30.dp)
+                        )
+                    }
                 ) {
                     Text("세션 정보와 알아차림을 터치한 시간은 기록되어")
                     Text("리포트로 확인할 수 있어요.")
@@ -130,7 +143,12 @@ fun OnboardingScreen(onFinish: () -> Unit) {
 
                 OnboardingPageData.CardPage(
                     card = {
-                        RotatingPetals()
+                        BoxWithConstraints(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            RotatingPetals(size = minOf(350.dp, maxHeight * 0.7f))
+                        }
                     }
                 ) {
                     Text("바쁘고 쉴틈 없는 일상 속,")
@@ -155,20 +173,24 @@ fun OnboardingScreen(onFinish: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp) // 원하는 높이로 고정
+                    .height(OnboardingBottomBarHeight)
                     .padding(horizontal = 15.dp)
                     .align(Alignment.BottomCenter)
             ) {
-                // 1. 인디케이터: Box의 중앙에 배치
+                // 1. 인디케이터: Box의 하단 중앙에 배치
                 PageIndicator(
                     pageCount = pages.size,
                     currentPage = pagerState.currentPage,
-                    modifier = Modifier.align(Alignment.Center) // Box의 정중앙
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 12.dp)
                 )
 
-                // 2. 버튼 영역: Box의 우측 중앙에 배치
+                // 2. 버튼 영역: Box의 우측 하단에 배치
                 Box(
-                    modifier = Modifier.align(Alignment.CenterEnd)
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 12.dp)
                 ) {
                     val isLastPage = pagerState.currentPage == pages.size - 1
 
@@ -195,16 +217,18 @@ fun OnboardingPageLayout(pageData: OnboardingPageData) {
     }
 }
 
+// 카드/이미지 영역(위) : 텍스트 영역(아래) = 60 : 40 으로 모든 페이지 통일
 @Composable
 private fun ImagePageLayout(pageData: OnboardingPageData.ImagePage) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .padding(bottom = OnboardingBottomBarHeight) // 하단 인디케이터/버튼과 안 겹치도록
     ) {
         Box(
             modifier = Modifier
-                .weight(1f)
+                .weight(0.6f)
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
@@ -221,7 +245,7 @@ private fun ImagePageLayout(pageData: OnboardingPageData.ImagePage) {
         HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
 
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(0.4f)
                 .fillMaxWidth()
                 .padding(horizontal = 30.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.Center
@@ -236,19 +260,24 @@ private fun CardPageLayout(pageData: OnboardingPageData.CardPage) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(bottom = 150.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = if (pageData.alignCardToTop) Arrangement.Top
-        else Arrangement.Center
+            .padding(bottom = OnboardingBottomBarHeight), // 하단 인디케이터/버튼과 안 겹치도록
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(modifier = Modifier.padding(horizontal = pageData.horizontalPadding)) {
+        Box(
+            modifier = Modifier
+                .weight(0.6f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
             pageData.card()
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp)
+            modifier = Modifier
+                .weight(0.4f)
+                .fillMaxWidth()
+                .padding(horizontal = 30.dp),
+            verticalArrangement = Arrangement.Center
         ) {
             pageData.content()
         }
@@ -279,7 +308,7 @@ fun PageIndicator(
 }
 
 @Composable
-fun RotatingPetals(modifier: Modifier = Modifier) {
+fun RotatingPetals(modifier: Modifier = Modifier, size: Dp = 350.dp) {
     val transition = rememberInfiniteTransition(label = "petals")
     val angle by transition.animateFloat(
         initialValue = 0f,
@@ -295,7 +324,7 @@ fun RotatingPetals(modifier: Modifier = Modifier) {
         painter = painterResource(R.drawable.ic_splash_lotus),
         contentDescription = null,
         modifier = modifier
-            .size(350.dp)
+            .size(size)
             .rotate(angle)
     )
 }
