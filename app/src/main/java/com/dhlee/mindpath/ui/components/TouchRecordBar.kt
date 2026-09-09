@@ -21,8 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.dhlee.mindpath.local.MeditationSessionEntity
-import com.dhlee.mindpath.local.TouchRecordEntity
+import com.dhlee.mindpath.data.MeditationSessionEntity
+import com.dhlee.mindpath.data.TouchRecordEntity
 import java.util.Locale
 
 @Composable

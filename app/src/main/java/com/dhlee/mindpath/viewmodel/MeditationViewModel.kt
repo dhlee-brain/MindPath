@@ -6,9 +6,9 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.dhlee.mindpath.MyApplication
-import com.dhlee.mindpath.local.MeditationRepository
-import com.dhlee.mindpath.local.MeditationSessionEntity
-import com.dhlee.mindpath.local.TouchRecordEntity
+import com.dhlee.mindpath.data.MeditationRepository
+import com.dhlee.mindpath.data.MeditationSessionEntity
+import com.dhlee.mindpath.data.TouchRecordEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

@@ -1,4 +1,4 @@
-package com.dhlee.mindpath.local
+package com.dhlee.mindpath.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey

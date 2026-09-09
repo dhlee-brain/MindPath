@@ -1,4 +1,4 @@
-package com.dhlee.mindpath.local
+package com.dhlee.mindpath.data
 
 import androidx.room.Dao
 import androidx.room.Insert
