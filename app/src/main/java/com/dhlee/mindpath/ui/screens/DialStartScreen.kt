@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,8 +46,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.dhlee.mindpath.BuildConfig
 import com.dhlee.mindpath.ui.components.DialStartButton
 import com.dhlee.mindpath.ui.components.MinuteSecondPicker
+import com.dhlee.mindpath.viewmodel.SettingsViewModel
 import com.dhlee.mindpath.viewmodel.TimerViewModel
 import kotlin.math.atan2
 
@@ -57,7 +60,8 @@ fun DialStartScreen(
     modifier: Modifier = Modifier,
     onHelpClick: () -> Unit,
     onStart: () -> Unit,
-    timerViewModel: TimerViewModel = viewModel()
+    timerViewModel: TimerViewModel = viewModel(),
+    settingsViewModel: SettingsViewModel = viewModel()
 ) {
     val isRunning by timerViewModel.isTimerRunning.collectAsState()
     val totalTime by timerViewModel.totalTime.collectAsState()
@@ -67,20 +71,42 @@ fun DialStartScreen(
     // 1. Box를 최상위 레이아웃으로 사용하여 겹치기 및 절대 위치 지정 허용
     Box(modifier = modifier.fillMaxSize()) {
 
-        // 2. 우측 상단 도움말 버튼 추가
-        IconButton(
-            onClick = onHelpClick,
-            modifier = Modifier
-                .size(64.dp)
-                .align(Alignment.TopEnd) // 우측 상단 정렬
-                .padding(16.dp) // 화면 가장자리와의 여백
+        // 2. 우측 상단 버튼 영역 (디버그 전용 온보딩 리셋 + 도움말)
+        Row(
+            modifier = Modifier.align(Alignment.TopEnd), // 우측 상단 정렬
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Info, // HelpOutline이나 다른 아이콘으로 변경 가능
-                contentDescription = "도움말",
-                modifier = Modifier.fillMaxSize(),
-                tint = Color.Gray // 앱 테마에 맞게 색상 조절
-            )
+            // 2-1. 디버그 빌드에서만 보이는 온보딩 리셋 버튼 (개발 중 온보딩 재확인용)
+            if (BuildConfig.DEBUG) {
+                IconButton(
+                    onClick = { settingsViewModel.resetOnboarding() },
+                    modifier = Modifier
+                        .size(64.dp)
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "온보딩 리셋 (디버그)",
+                        modifier = Modifier.fillMaxSize(),
+                        tint = Color.Gray
+                    )
+                }
+            }
+
+            // 2-2. 도움말 버튼
+            IconButton(
+                onClick = onHelpClick,
+                modifier = Modifier
+                    .size(64.dp)
+                    .padding(16.dp) // 화면 가장자리와의 여백
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info, // HelpOutline이나 다른 아이콘으로 변경 가능
+                    contentDescription = "도움말",
+                    modifier = Modifier.fillMaxSize(),
+                    tint = Color.Gray // 앱 테마에 맞게 색상 조절
+                )
+            }
         }
 
         // 3. 기존 중앙 정렬 콘텐츠 (Box 안에서 전체 크기를 가지며 스스로 중앙 정렬됨)

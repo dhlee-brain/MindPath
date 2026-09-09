@@ -38,6 +38,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true // BuildConfig.DEBUG 사용을 위해 필요 (AGP 8부터 기본 비활성)
     }
 }
 
