@@ -90,14 +90,12 @@ fun RippleScreen(
         onDispose { view.keepScreenOn = false }
     }
 
-// 2) 기존: BGM 시작 + 리소스 해제
+    // 2) 종료 소리(싱잉볼) 리소스 해제
     DisposableEffect(Unit) {
         onDispose {
             bowlPlayer?.release()
         }
     }
-
-
 
     // 🎵 종료 소리(싱잉볼) 실시간 볼륨 조절 (나중에 설정 창에서 바꿀 때 발동)
     LaunchedEffect(isBowlMuted) {
