@@ -87,7 +87,7 @@ fun EyeBlinkTransition(
             exit = fadeOut(tween(500))
         ) {
             Text(
-                text = "눈을 감고 호흡에 집중하세요",
+                text = "호흡이나 몸의 감각에 주의를 기울여 보세요.",
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
