@@ -116,8 +116,7 @@ private fun TouchRecordDetail(
             style = MaterialTheme.typography.bodyMedium
         )
 
-        val feelingText = session.feelingRecord
-            ?.takeIf { it.isNotBlank() && it != "중도 종료" && it != "소감 생략" }
+        val feelingText = session.feelingRecord?.takeIf { it.isNotBlank() }
 
         if (feelingText != null) {
             Spacer(modifier = Modifier.height(16.dp))

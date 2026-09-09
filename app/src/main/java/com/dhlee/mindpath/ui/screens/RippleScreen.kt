@@ -119,7 +119,7 @@ fun RippleScreen(
             onConfirm = {
                 showExitDialog = false
                 timerViewModel.stopTimer() // 타이머 중지
-                meditationViewModel.finishMeditation("중도 종료", totalTime - timeLeft) // DB 저장
+                meditationViewModel.finishMeditation(null, false, totalTime - timeLeft) // 중도 종료, DB 저장
                 onNavigateBack()// 메인으로 돌아가기
             },
             onDismiss = {
@@ -140,13 +140,13 @@ fun RippleScreen(
         FeelingInputDialog(
             onConfirm = { inputFeeling ->
                 showFeelingDialog = false
-                meditationViewModel.finishMeditation(inputFeeling, totalTime) // 입력한 소감으로 DB 저장
+                meditationViewModel.finishMeditation(inputFeeling, true, totalTime) // 입력한 소감으로 DB 저장
                 onNavigateBack() // 메인으로 돌아가기
             },
             onDismiss = {
-                // 원한다면 소감을 안 적고 닫았을 때의 처리 (예: 빈칸으로 저장하고 닫기)
+                // 소감을 안 적고 닫은 경우: 완료 처리는 하되 feelingRecord는 비워둠
                 showFeelingDialog = false
-                meditationViewModel.finishMeditation("소감 생략", totalTime)
+                meditationViewModel.finishMeditation(null, true, totalTime)
                 onNavigateBack()
             },
             enabled = true,

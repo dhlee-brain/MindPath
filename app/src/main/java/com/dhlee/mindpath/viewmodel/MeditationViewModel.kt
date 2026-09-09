@@ -71,7 +71,11 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
         _currentTouchCount.value = currentTouchRecords.size
     }
 
-    fun finishMeditation(feeling: String, completedDurationSeconds: Int? = null) {
+    fun finishMeditation(
+        feelingRecord: String?,
+        isCompleted: Boolean,
+        completedDurationSeconds: Int? = null
+    ) {
         val endTime = if (completedDurationSeconds != null) {
             startTime + (completedDurationSeconds * 1000L)
         } else {
@@ -81,7 +85,8 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
             val session = MeditationSessionEntity(
                 startTime = startTime,
                 endTime = endTime,
-                feelingRecord = feeling
+                feelingRecord = feelingRecord,
+                isCompleted = isCompleted
             )
             val sessionId = repository.insertMeditationSession(session)
             val records = currentTouchRecords.map { time ->
