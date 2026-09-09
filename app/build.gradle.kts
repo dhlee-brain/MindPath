@@ -22,6 +22,9 @@ android {
 
     buildTypes {
         release {
+            // 로컬 기기에서 release(난독화 적용) 빌드를 Run 버튼으로 바로 테스트하기 위한 임시 서명.
+            // 실제 스토어 제출용 서명은 Build > Generate Signed Bundle / APK에서 별도 키스토어로 진행할 것.
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true // 미사용 리소스(온보딩 미사용 이미지 등)도 같이 제거됨
             proguardFiles(
