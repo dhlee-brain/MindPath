@@ -1,5 +1,6 @@
 package com.dhlee.mindpath.ui.components
 
+import android.media.MediaPlayer
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,18 +22,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.dhlee.mindpath.R
+import com.dhlee.mindpath.viewmodel.SettingsViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun EyeBlinkTransition(
-    onComplete: () -> Unit  // onMidpoint와 통합하여 하나만 사용합니다.
+    onComplete: () -> Unit,  // onMidpoint와 통합하여 하나만 사용합니다.
+    settingsViewModel: SettingsViewModel = viewModel()
 ) {
     val progress = remember { Animatable(0f) }
     var showText by remember { mutableStateOf(false) }
 
+    // 🔔 종료 때 쓰는 싱잉볼 소리를 눈 감기는 시점에도 재생
+    val context = LocalContext.current
+    val isBowlMuted by settingsViewModel.isBowlMuted.collectAsState()
+
     LaunchedEffect(Unit) {
+            // 0. 눈 감기 시작과 동시에 싱잉볼 소리 재생.
+            // 화면 전환(2.7초)보다 소리 여운이 더 길 수 있어서, 컴포저블 생명주기에
+            // 묶지 않고 재생이 끝나면 스스로 release되도록 함 (화면이 사라져도 안 끊김)
+            val bowlPlayer = MediaPlayer.create(context, R.raw.singing_bowl)
+            bowlPlayer?.setOnCompletionListener { it.release() }
+            val volume = if (isBowlMuted) 0f else 1f
+            bowlPlayer?.setVolume(volume, volume)
+            bowlPlayer?.start()
+
             // 1. 눈을 부드럽게 감기 (이 애니메이션은 유지)
             progress.animateTo(
                 targetValue = 1f,
