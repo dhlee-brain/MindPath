@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,7 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -50,18 +46,12 @@ import com.dhlee.mindpath.ui.components.DialStartButton
 import com.dhlee.mindpath.ui.components.FeelingInputPreviewCard
 import com.dhlee.mindpath.ui.components.RipplePreviewCard
 import com.dhlee.mindpath.ui.components.SessionItemPreviewCard
-import com.dhlee.mindpath.ui.theme.NanumHandwriting
 
 // 하단 페이지 인디케이터 + 건너뛰기/시작하기 버튼이 차지하는 높이
 private val OnboardingBottomBarHeight = 64.dp
 
 sealed interface OnboardingPageData {
     val content: @Composable () -> Unit
-
-    data class ImagePage(
-        val imageRes: Int,
-        override val content: @Composable () -> Unit
-    ) : OnboardingPageData
 
     data class CardPage(
         val card: @Composable () -> Unit,
@@ -75,14 +65,22 @@ sealed interface OnboardingPageData {
 fun OnboardingScreen(onFinish: () -> Unit) {
     CompositionLocalProvider(
         LocalTextStyle provides LocalTextStyle.current.copy(
-            fontFamily = NanumHandwriting,
-            fontSize = 20.sp,
-            lineHeight = 30.sp
+            fontSize = 16.sp, // 앱 기본 bodyLarge와 동일하게 맞춤
+            lineHeight = 24.sp
         )
     ) {
         val pages = remember {
             listOf(
-                OnboardingPageData.ImagePage(R.drawable.description_image_1) {
+                OnboardingPageData.CardPage(
+                    card = {
+                        BoxWithConstraints(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            RotatingPetals(size = minOf(350.dp, maxHeight * 0.7f))
+                        }
+                    }
+                ) {
                     Text("감당하기 어려운 감정이 밀려올 때,")
                     Spacer(modifier = Modifier.height(15.dp))
                     Text("또는 잠시 방해받지 않는\n순간을 창조하고 싶을 때가\n있지는 않으신가요?")
@@ -210,48 +208,11 @@ fun OnboardingScreen(onFinish: () -> Unit) {
 @Composable
 fun OnboardingPageLayout(pageData: OnboardingPageData) {
     when (pageData) {
-        is OnboardingPageData.ImagePage -> ImagePageLayout(pageData)
         is OnboardingPageData.CardPage -> CardPageLayout(pageData)
     }
 }
 
-// 카드/이미지 영역(위) : 텍스트 영역(아래) = 60 : 40 으로 모든 페이지 통일
-@Composable
-private fun ImagePageLayout(pageData: OnboardingPageData.ImagePage) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(bottom = OnboardingBottomBarHeight) // 하단 인디케이터/버튼과 안 겹치도록
-    ) {
-        Box(
-            modifier = Modifier
-                .weight(0.6f)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(pageData.imageRes),
-                contentDescription = null,
-                modifier = Modifier
-                    .aspectRatio(0.8f)
-                    .fillMaxHeight(),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
-
-        Column(
-            modifier = Modifier.weight(0.4f)
-                .fillMaxWidth()
-                .padding(horizontal = 30.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.Top // 줄 수와 무관하게 첫 줄이 항상 같은 위치에서 시작
-        ) { pageData.content() }
-    }
-
-}
-
+// 카드 영역(위) : 텍스트 영역(아래) = 60 : 40 으로 모든 페이지 통일
 @Composable
 private fun CardPageLayout(pageData: OnboardingPageData.CardPage) {
     Column(
@@ -274,7 +235,7 @@ private fun CardPageLayout(pageData: OnboardingPageData.CardPage) {
             modifier = Modifier
                 .weight(0.4f)
                 .fillMaxWidth()
-                .padding(horizontal = 30.dp, vertical = 24.dp), // ImagePageLayout과 동일한 여백으로 시작점 통일
+                .padding(horizontal = 30.dp, vertical = 24.dp), // 모든 페이지 동일한 여백으로 시작점 통일
             verticalArrangement = Arrangement.Top // 줄 수와 무관하게 첫 줄이 항상 같은 위치에서 시작
         ) {
             pageData.content()
