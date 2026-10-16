@@ -21,6 +21,13 @@ android {
     }
 
     buildTypes {
+
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            resValue("string", "app_name", "마음의 길 (debug)")
+        }
+
         release {
             // 로컬 기기에서 release(난독화 적용) 빌드를 Run 버튼으로 바로 테스트하기 위한 임시 서명.
             // 실제 스토어 제출용 서명은 Build > Generate Signed Bundle / APK에서 별도 키스토어로 진행할 것.

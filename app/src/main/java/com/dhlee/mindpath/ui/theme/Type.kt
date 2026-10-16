@@ -13,29 +13,43 @@ val NanumHandwriting = FontFamily(
 )
 
 
-// Set of Material typography styles to start with
+// 앱 기본 글꼴
+val AppFont = FontFamily(
+    Font(R.font.notosanskr_normal, FontWeight.Normal),
+    Font(R.font.notosanskr_medium, FontWeight.Medium),
+    Font(R.font.notosanskr_bold, FontWeight.Bold),
+    Font(R.font.notosanskr_semibold, FontWeight.Bold),
+)
+
+private fun TextStyle.app() = copy(fontFamily = AppFont)
+
+private val base = Typography()
+
 val Typography = Typography(
+    displayLarge = base.displayLarge.app(),
+    displayMedium = base.displayMedium.app(),
+    displaySmall = base.displaySmall.app(),
+
+    headlineLarge = base.headlineLarge.app(),
+    headlineMedium = base.headlineMedium.app(),
+    headlineSmall = base.headlineSmall.app(),
+
+    titleLarge = base.titleLarge.app(),
+    titleMedium = base.titleMedium.app(),
+    titleSmall = base.titleSmall.app(),
+
+    // 기존에 직접 정의했던 값 유지 (글꼴만 AppFont로 변경)
     bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = AppFont,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
-    )
-    /* Other default text styles to override
-    titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
     ),
-    labelSmall = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
-    )
-    */
+    bodyMedium = base.bodyMedium.app(),
+    bodySmall = base.bodySmall.app(),
+
+    labelLarge = base.labelLarge.app(),
+    labelMedium = base.labelMedium.app(),
+    labelSmall = base.labelSmall.app(),
 )

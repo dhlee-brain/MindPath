@@ -104,7 +104,7 @@ fun FeelingInputPreviewCard(
 
 @Composable
 private fun FeelingInputTitle() {
-    Text("세션이 종료되었어요", color = TextPrimaryColor)
+    Text("세션이 종료되었어요.", color = TextPrimaryColor)
 }
 
 @Composable

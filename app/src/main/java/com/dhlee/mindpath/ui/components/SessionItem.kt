@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dhlee.mindpath.data.MeditationSessionEntity
@@ -144,6 +145,7 @@ private fun FeelingQuote(text: String, modifier: Modifier = Modifier) {
             text = text,
             color = Color(0xFF37474F),
             fontFamily = NanumHandwriting,
+            fontWeight = FontWeight.Normal,
             fontSize = 18.sp,
             lineHeight = 26.sp,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
