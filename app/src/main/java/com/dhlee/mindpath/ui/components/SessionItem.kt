@@ -3,6 +3,7 @@ package com.dhlee.mindpath.ui.components
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,10 +59,15 @@ fun SessionItem(
     val timeFormatter = remember { SimpleDateFormat("a hh:mm", Locale.KOREAN) }
     val formattedTime = timeFormatter.format(Date(session.startTime))
 
+    val interactionSource = remember { MutableInteractionSource() }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null  // 클릭 시 리플 효과 제거
+            ) { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {

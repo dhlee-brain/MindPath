@@ -97,6 +97,28 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
         }
     }
 
+    /** 삭제한 세션을 되돌리기 위해 들고 있는 스냅샷 (한 건만 보관) */
+    private var lastDeletedSession: DeletedSessionSnapshot? = null
+
+    fun deleteSession(session: MeditationSessionEntity) {
+        lastDeletedSession = DeletedSessionSnapshot(
+            session = session,
+            touchRecords = touchRecordsBySession.value[session.id].orEmpty()
+        )
+        viewModelScope.launch {
+            repository.deleteSession(session.id)
+        }
+    }
+
+    /** 토스트의 '되돌리기' — 직전에 삭제한 세션을 원래 id 그대로 복구 */
+    fun undoDeleteSession() {
+        val snapshot = lastDeletedSession ?: return
+        lastDeletedSession = null
+        viewModelScope.launch {
+            repository.restoreSession(snapshot.session, snapshot.touchRecords)
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -108,6 +130,11 @@ class MeditationViewModel(private val repository: MeditationRepository) : ViewMo
         }
     }
 }
+
+private data class DeletedSessionSnapshot(
+    val session: MeditationSessionEntity,
+    val touchRecords: List<TouchRecordEntity>
+)
 
 fun Long.toLocalDate(): LocalDate =
     Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault()).toLocalDate()

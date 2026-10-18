@@ -18,4 +18,8 @@ interface MeditationDao {
 
     @Query("SELECT * FROM touch_records WHERE sessionId IN (:sessionIds)")
     fun getTouchRecordsForSessions(sessionIds: List<Long>): Flow<List<TouchRecordEntity>>
+
+    // 세션 삭제. touch_records는 FK CASCADE로 함께 지워짐
+    @Query("DELETE FROM meditation_sessions WHERE id = :sessionId")
+    suspend fun deleteSessionById(sessionId: Long)
 }
