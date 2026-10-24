@@ -18,6 +18,7 @@ class SettingsRepository(private val context: Context) {
         val IS_BOWL_MUTED_KEY = booleanPreferencesKey("is_bowl_muted")   // 종료 소리 (설정 화면 제어용)
         val TOTAL_TIME_KEY = intPreferencesKey("total_time")             // 타이머 설정 시간
         val IS_ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed") // 온보딩 최초 완료 여부
+        val IS_FREE_MODE_KEY = booleanPreferencesKey("is_free_mode")             // 마지막에 선택한 세션 모드 (시간/자유)
     }
 
     // ==========================================
@@ -40,6 +41,12 @@ class SettingsRepository(private val context: Context) {
     val isOnboardingCompletedFlow: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
             preferences[IS_ONBOARDING_COMPLETED_KEY] ?: false
+        }
+
+    // 4. 마지막으로 선택한 세션 모드 (기본값: false - 시간 모드)
+    val isFreeModeFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[IS_FREE_MODE_KEY] ?: false
         }
 
 
@@ -72,6 +79,13 @@ class SettingsRepository(private val context: Context) {
     suspend fun resetOnboarding() {
         context.dataStore.edit { preferences ->
             preferences[IS_ONBOARDING_COMPLETED_KEY] = false
+        }
+    }
+
+    // 5. 세션 모드 저장 (다음에 앱을 열어도 마지막에 고른 모드로 시작하도록)
+    suspend fun saveFreeMode(isFreeMode: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[IS_FREE_MODE_KEY] = isFreeMode
         }
     }
 }

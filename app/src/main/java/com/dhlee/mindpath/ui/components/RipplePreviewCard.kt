@@ -31,10 +31,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
+// count는 밖에서 받음 -> 온보딩의 여러 페이지가 같은 알아차림 횟수를 공유할 수 있도록
 @Composable
-fun RipplePreviewCard(modifier: Modifier = Modifier) {
-    var count by remember { mutableIntStateOf(0) }
-
+fun RipplePreviewCard(
+    count: Int,
+    onTap: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -43,14 +46,14 @@ fun RipplePreviewCard(modifier: Modifier = Modifier) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             RippleShaderLayer(
                 modifier = Modifier.matchParentSize(),
-                onTap = { count++ }
+                onTap = onTap
             )
         } else {
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .background(Brush.verticalGradient(RippleGradientColors))
-                    .pointerInput(Unit) { detectTapGestures { count++ } }
+                    .pointerInput(Unit) { detectTapGestures { onTap() } }
             )
         }
 

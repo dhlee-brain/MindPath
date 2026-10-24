@@ -32,6 +32,10 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
     private val _timeLeft = MutableStateFlow(60)
     val timeLeft: StateFlow<Int> = _timeLeft.asStateFlow()
 
+    // 세션 모드 (시간 모드 / 자유 모드)
+    private val _sessionMode = MutableStateFlow(SessionMode.TIMED)
+    val sessionMode: StateFlow<SessionMode> = _sessionMode.asStateFlow()
+
     private var timerJob: Job? = null
 
     init {
@@ -44,6 +48,20 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
                     _timeLeft.value = savedTime
                 }
             }
+        }
+
+        // 🌟 마지막으로 선택했던 세션 모드도 함께 불러옴
+        viewModelScope.launch {
+            settingsRepository.isFreeModeFlow.collect { isFree ->
+                _sessionMode.value = if (isFree) SessionMode.FREE else SessionMode.TIMED
+            }
+        }
+    }
+
+    fun setSessionMode(mode: SessionMode) {
+        _sessionMode.value = mode
+        viewModelScope.launch {
+            settingsRepository.saveFreeMode(mode == SessionMode.FREE)
         }
     }
 

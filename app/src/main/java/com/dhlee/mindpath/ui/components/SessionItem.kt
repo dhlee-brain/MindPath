@@ -163,7 +163,7 @@ private fun FeelingQuote(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun SessionItemPreviewCard(modifier: Modifier = Modifier) {
     // 접힌 상태로 시작 (실제 RecordScreen 기본값과 동일 + 온보딩에서 카드가 커서 잘리는 것 방지)
-    var isExpanded by remember { mutableStateOf(false) }
+    var isExpanded by remember { mutableStateOf(true) }
 
     val (dummySession, dummyRecords) = remember { createDummySessionData() }
 

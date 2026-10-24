@@ -84,16 +84,22 @@ fun FeelingInputPreviewCard(
         shape = MaterialTheme.shapes.extraLarge,
         shadowElevation = 6.dp,
     ) {
+        // AlertDialog가 슬롯마다 내부적으로 지정하는 글꼴 스타일/여백을 그대로 맞춤
+        // (제목: headlineSmall / 본문·입력창: bodyMedium / 제목 아래 16dp, 본문 아래 24dp)
         Column(modifier = Modifier.padding(24.dp)) {
-            FeelingInputTitle()
+            ProvideTextStyle(MaterialTheme.typography.headlineSmall) {
+                FeelingInputTitle()
+            }
             Spacer(modifier = Modifier.height(16.dp))
-            FeelingInputContent(
-                feeling = feeling,
-                onFeelingChange = {},
-                enabled = false,
-                minLines = 3, // 미리보기 카드라 5줄까지는 필요 없음 — 온보딩에서 잘림 방지
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
+                FeelingInputContent(
+                    feeling = feeling,
+                    onFeelingChange = {},
+                    enabled = false,
+                    minLines = 3, // 미리보기 카드라 5줄까지는 필요 없음 — 온보딩에서 잘림 방지
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                 FeelingInputConfirmButton(onConfirm = {}, enabled = false)
             }

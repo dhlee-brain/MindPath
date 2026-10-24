@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,10 +41,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,6 +56,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dhlee.mindpath.BuildConfig
 import com.dhlee.mindpath.ui.components.DialStartButton
 import com.dhlee.mindpath.ui.components.MinuteSecondPicker
+import com.dhlee.mindpath.ui.components.SessionModeToggle
+import com.dhlee.mindpath.viewmodel.SessionMode
 import com.dhlee.mindpath.viewmodel.SettingsViewModel
 import com.dhlee.mindpath.viewmodel.TimerViewModel
 import kotlin.math.atan2
@@ -65,46 +74,64 @@ fun DialStartScreen(
 ) {
     val isRunning by timerViewModel.isTimerRunning.collectAsState()
     val totalTime by timerViewModel.totalTime.collectAsState()
+    val sessionMode by timerViewModel.sessionMode.collectAsState()
     var openDialog by remember { mutableStateOf(false) }
 
 
     // 1. Box를 최상위 레이아웃으로 사용하여 겹치기 및 절대 위치 지정 허용
-    Box(modifier = modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
 
-        // 2. 우측 상단 버튼 영역 (디버그 전용 온보딩 리셋 + 도움말)
+        // 2. 상단 바 영역 (왼쪽: 로고 + 앱 이름 / 오른쪽: 도움말)
         Row(
-            modifier = Modifier.align(Alignment.TopEnd), // 우측 상단 정렬
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                // 오른쪽은 IconButton(48dp) 자체 여백이 있어 덜 줌 -> 로고 왼쪽 끝과 아이콘 오른쪽 끝이 화면 가장자리에서 비슷한 거리
+                .padding(start = 5.dp, end = 8.dp, top = 0.dp, bottom = 0.dp),
+            verticalAlignment = Alignment.CenterVertically // 로고 / 글자 / 아이콘의 세로 중심을 맞춤
         ) {
-            // 2-1. 디버그 빌드에서만 보이는 온보딩 리셋 버튼 (개발 중 온보딩 재확인용)
-            if (BuildConfig.DEBUG) {
-                IconButton(
-                    onClick = { settingsViewModel.resetOnboarding() },
-                    modifier = Modifier
-                        .size(64.dp)
-                        .padding(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "온보딩 리셋 (디버그)",
-                        modifier = Modifier.fillMaxSize(),
-                        tint = Color.Gray
-                    )
-                }
-            }
+            // 2-1. 로고 + 앱 이름
+            // 온보딩과 같은 천천히 회전하는 연꽃 로고
+            RotatingPetals(size = 48.dp)
+
+            Spacer(modifier = Modifier.width(2.dp))
+
+            Text(
+                text = "마음의 길",
+                fontSize = 30.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Spacer(modifier = Modifier.weight(1f)) // 남는 공간을 밀어 도움말 버튼을 오른쪽 끝으로
 
             // 2-2. 도움말 버튼
             IconButton(
                 onClick = onHelpClick,
-                modifier = Modifier
-                    .size(64.dp)
-                    .padding(16.dp) // 화면 가장자리와의 여백
+                modifier = Modifier.size(48.dp) // 최소 터치 영역 48dp 유지
             ) {
                 Icon(
                     imageVector = Icons.Default.Info, // HelpOutline이나 다른 아이콘으로 변경 가능
                     contentDescription = "도움말",
-                    modifier = Modifier.fillMaxSize(),
-                    tint = Color.Gray // 앱 테마에 맞게 색상 조절
+                    modifier = Modifier
+                        .size(40.dp)
+                        // 아이콘 모양 안쪽만 그라데이션으로 칠하기 위해 별도 레이어에서 합성 (SrcIn)
+                        .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                        .drawWithCache {
+                            // DialStartButton과 같은 135°(좌상단 -> 우하단) 그라데이션 + 같은 색
+                            val iconGradient = Brush.linearGradient(
+                                colorStops = arrayOf(
+                                    0.0f to Color(0xFF6366F1),   // Indigo 500
+                                    0.6f to Color(0xFF8B5CF6),   // Violet 500
+                                    1.0f to Color(0xFFA855F7),   // Purple 500
+                                ),
+                                start = Offset.Zero,
+                                end = Offset(size.width, size.height)
+                            )
+                            onDrawWithContent {
+                                drawContent()
+                                drawRect(brush = iconGradient, blendMode = BlendMode.SrcIn)
+                            }
+                        },
+                    tint = Color.Black // 실제 색은 위 그라데이션이 덮어씀 (불투명하기만 하면 됨)
                 )
             }
         }
@@ -116,7 +143,23 @@ fun DialStartScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            TimerDisplay(timeLeft = totalTime)
+            Spacer(modifier = Modifier.height(3.dp)) // 토글을 살짝 아래로
+
+            SessionModeToggle(
+                mode = sessionMode,
+                onModeSelected = { timerViewModel.setSessionMode(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 64.dp) // 좌우 여백을 늘려 토글 폭을 더 줄임
+            )
+
+            // Spacer(modifier = Modifier.height(5.dp))
+
+            if (sessionMode == SessionMode.TIMED) {
+                TimerDisplay(timeLeft = totalTime)
+            } else {
+                FreeModeDisplay()
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -126,89 +169,112 @@ fun DialStartScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            val presetTimes = listOf(1, 3, 5, 10, 15, 20)
-            val selectedMinutes = totalTime / 60
-            val isExactMinute = totalTime % 60 == 0
-
-            Column(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // 첫 번째 행 (1분, 3분, 5분)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    presetTimes.take(3).forEach { min ->
-                        val isSelected = isExactMinute && selectedMinutes == min
-                        PresetButton(
-                            minutes = min,
-                            isSelected = isSelected,
-                            onClick = { timerViewModel.setTime(min * 60) }, // 선택 시 ViewModel에 초 단위로 저장
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-
-                // 두 번째 행 (10분, 15분, 20분)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    presetTimes.drop(3).forEach { min ->
-                        val isSelected = isExactMinute && selectedMinutes == min
-                        PresetButton(
-                            minutes = min,
-                            isSelected = isSelected,
-                            onClick = { timerViewModel.setTime(min * 60) }, // 선택 시 ViewModel에 초 단위로 저장
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 분과 초 계산
-            val minutes = totalTime / 60
-            val seconds = totalTime % 60
-
-// 시간에 따라 표시될 텍스트 포맷 설정 (예: "5분 30초", "45초", "5분 0초")
-            val timeText = if (minutes > 0) {
-                if (seconds > 0) "${minutes}분 ${seconds}초" else "${minutes}분 0초" // 0초일 때 생략하고 싶다면 "${minutes}분"으로 변경 가능
-            } else {
-                "${seconds}초"
-            }
-
-            Button(
-                onClick = { openDialog = true },
+            // 두 모드의 높이가 달라서 전환할 때 위쪽 요소들(토글, 다이얼 버튼)까지 같이 밀리는 걸 막기 위해
+            // 이 블록 전체를 고정 높이 상자에 담고, 내용은 그 안에서 위쪽부터 채움
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                ),
-                shape = RoundedCornerShape(12.dp),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp) // 내부 여백 조절
+                    .heightIn(min = 176.dp), // 평소엔 176dp 고정처럼 동작, 글꼴이 커서 내용이 넘칠 때만 늘어나 잘리지 않게
+                contentAlignment = Alignment.TopCenter
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween, // 양쪽 끝으로 배치
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "직접 설정",
-                        fontSize = 16.sp,
-                        color = Color.DarkGray
-                    )
+                if (sessionMode == SessionMode.TIMED) {
+                    val presetTimes = listOf(1, 3, 5, 10, 15, 20)
+                    val selectedMinutes = totalTime / 60
+                    val isExactMinute = totalTime % 60 == 0
 
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 24.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // 첫 번째 행 (1분, 3분, 5분)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                presetTimes.take(3).forEach { min ->
+                                    val isSelected = isExactMinute && selectedMinutes == min
+                                    PresetButton(
+                                        minutes = min,
+                                        isSelected = isSelected,
+                                        onClick = { timerViewModel.setTime(min * 60) }, // 선택 시 ViewModel에 초 단위로 저장
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+
+                            // 두 번째 행 (10분, 15분, 20분)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                presetTimes.drop(3).forEach { min ->
+                                    val isSelected = isExactMinute && selectedMinutes == min
+                                    PresetButton(
+                                        minutes = min,
+                                        isSelected = isSelected,
+                                        onClick = { timerViewModel.setTime(min * 60) }, // 선택 시 ViewModel에 초 단위로 저장
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // 분과 초 계산
+                        val minutes = totalTime / 60
+                        val seconds = totalTime % 60
+
+                        // 시간에 따라 표시될 텍스트 포맷 설정 (예: "5분 30초", "45초", "5분 0초")
+                        val timeText = if (minutes > 0) {
+                            if (seconds > 0) "${minutes}분 ${seconds}초" else "${minutes}분 0초" // 0초일 때 생략하고 싶다면 "${minutes}분"으로 변경 가능
+                        } else {
+                            "${seconds}초"
+                        }
+
+                        Button(
+                            onClick = { openDialog = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = Color.Black
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp) // 내부 여백 조절
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween, // 양쪽 끝으로 배치
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "직접 설정",
+                                    fontSize = 16.sp,
+                                    color = Color.DarkGray
+                                )
+
+                                Text(
+                                    text = timeText, // 분과 초가 모두 반영된 텍스트
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF6366F1) // 보라색(Indigo) 텍스트
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // 자유 모드: 프리셋/직접 설정 대신 안내 문구만, 상자 중앙에 배치
                     Text(
-                        text = timeText, // 분과 초가 모두 반영된 텍스트
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF6366F1) // 보라색(Indigo) 텍스트
+                        text = "시간 제한 없이 원하는 만큼 머물러 보세요.",
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(horizontal = 24.dp)
                     )
                 }
             }
@@ -256,9 +322,21 @@ fun DialStartScreen(
 
 @Composable
 fun TimerDisplay(timeLeft: Int) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = String.format("%02d : %02d", timeLeft / 60, timeLeft % 60),
+            style = MaterialTheme.typography.displayLarge,
+            color = Color.DarkGray
+        )
+    }
+}
+
+// 자유 모드일 때 TimerDisplay 자리를 대신하는 표시 (레이아웃 높이를 맞춰서 전환 시 덜컹거리지 않게)
+@Composable
+fun FreeModeDisplay() {
     Column(horizontalAlignment = Alignment.Companion.CenterHorizontally) {
         Text(
-            text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
+            text = "∞", // ∞
             style = MaterialTheme.typography.displayLarge,
             color = Color.Companion.DarkGray
         )

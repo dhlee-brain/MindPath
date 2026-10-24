@@ -52,6 +52,7 @@ import com.dhlee.mindpath.ui.components.ExitMeditationDialog
 import com.dhlee.mindpath.ui.components.FeelingInputDialog
 import com.dhlee.mindpath.ui.components.MeditationTimerBar
 import com.dhlee.mindpath.viewmodel.MeditationViewModel
+import com.dhlee.mindpath.viewmodel.SessionMode
 import com.dhlee.mindpath.viewmodel.SettingsViewModel
 import com.dhlee.mindpath.viewmodel.TimerViewModel
 import kotlinx.coroutines.launch
@@ -71,6 +72,7 @@ fun RippleScreen(
     val timeLeft by timerViewModel.timeLeft.collectAsState()
     // StateFlow의 변화를 지속적으로 관찰함
     val totalTime by timerViewModel.totalTime.collectAsState()
+    val sessionMode by timerViewModel.sessionMode.collectAsState()
 
     val touchCount by meditationViewModel.currentTouchCount.collectAsState()
 
@@ -125,9 +127,13 @@ fun RippleScreen(
     }
 
     // 1. 타이머 시작
+    // 자유 모드는 시간 제한이 없으므로 카운트다운 자체를 시작하지 않음
+    // (안 그러면 마지막에 설정했던 totalTime이 지나는 순간 몰래 자동 종료되어 버림)
     LaunchedEffect(Unit) {
         meditationViewModel.startMeditation()
-        timerViewModel.startTimer()
+        if (sessionMode == SessionMode.TIMED) {
+            timerViewModel.startTimer()
+        }
     }
 
     // 2-1. 백 버튼 또는 스와이프 제스쳐를 통한 종료
@@ -139,8 +145,15 @@ fun RippleScreen(
         ExitMeditationDialog(
             onConfirm = {
                 showExitDialog = false
-                timerViewModel.stopTimer() // 타이머 중지
-                meditationViewModel.finishMeditation(null, false, totalTime - timeLeft) // 중도 종료, DB 저장
+                if (sessionMode == SessionMode.TIMED) {
+                    timerViewModel.stopTimer() // 타이머 중지
+                    meditationViewModel.finishMeditation(null, false, totalTime - timeLeft) // 중도 종료, DB 저장
+                } else {
+                    // 자유 모드는 타이머가 안 돌았으니 totalTime - timeLeft가 항상 0이라 쓸 수 없음
+                    // completedDurationSeconds를 null로 넘기면 '지금 이 순간'을 종료 시각으로 써서
+                    // 시작부터 실제로 흐른 시간이 그대로 기록됨
+                    meditationViewModel.finishMeditation(null, false, null)
+                }
                 onNavigateBack()// 메인으로 돌아가기
             },
             onDismiss = {
@@ -181,9 +194,11 @@ fun RippleScreen(
     val progressAnim = remember { Animatable(1f) }
 
     // 3. 타이머 On/Off 신호에 맞춰 한 번의 롱테이크 애니메이션 실행
+    // 자유 모드는 깎아낼 '전체 시간'이라는 개념이 없으므로, 100%로 채운 채 그대로 둠
     LaunchedEffect(Unit) {
-            // 타이머 켜짐: 시작 전에 100%로 꽉 채운 후
-            progressAnim.snapTo(1f)
+        // 타이머 켜짐: 시작 전에 100%로 꽉 채운 후
+        progressAnim.snapTo(1f)
+        if (sessionMode == SessionMode.TIMED) {
             // 전체 설정 시간(ms) 동안 0%를 향해 한 번에 스무스하게 깎아내림!
             progressAnim.animateTo(
                 targetValue = 0f,
@@ -192,6 +207,7 @@ fun RippleScreen(
                     easing = LinearEasing
                 )
             )
+        }
     }
 
     val gradientColors = listOf(
@@ -280,15 +296,19 @@ fun RippleScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "설정 시간",
+                text = if (sessionMode == SessionMode.TIMED) "시간 모드" else "자유 모드",
                 color = Color(0xFFE0F7FA),
                 fontSize = 14.sp,
                 lineHeight = 14.sp
             )
+
+            // 뒤로가기(버튼/스와이프 공통 용어) 안내를 맨 아래에 배치
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "Total Session Time",
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 12.sp
+                text = "뒤로가기로 마칠 수 있어요",
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center
             )
 
             Column(
@@ -296,9 +316,13 @@ fun RippleScreen(
                     .fillMaxWidth(0.8f) // 1. 여기서 타이머 바와 텍스트가 공유할 '80% 너비'를 확정 짓습니다.
                     .padding(vertical = 5.dp)
             ) {
-                // 2. 시간 텍스트 (우측 정렬)
+                // 2. 시간 텍스트 (우측 정렬) - 자유 모드에선 시간 대신 무한대 기호
                 Text(
-                    text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
+                    text = if (sessionMode == SessionMode.TIMED) {
+                        String.format("%02d:%02d", timeLeft / 60, timeLeft % 60)
+                    } else {
+                        "∞" // ∞
+                    },
                     fontSize = 18.sp, // 직접 크기 지정
                     lineHeight = 18.sp,
                     fontWeight = FontWeight.Medium, // 굵기 지정
@@ -309,6 +333,7 @@ fun RippleScreen(
                 Spacer(modifier = Modifier.height(4.dp)) // 텍스트와 선 사이의 미세한 간격
 
                 // 3. 타이머 바 (부모의 80% 너비를 100% 꽉 채움)
+                // 자유 모드에선 progressAnim이 깎이지 않고 1f(=100%)로 고정된 채 유지됨
                 MeditationTimerBar(
                     progress = progressAnim.value,
                     modifier = Modifier.fillMaxWidth() // 내부에 있던 0.8f 제약은 빼고 꽉 채우기만 합니다.
@@ -318,10 +343,10 @@ fun RippleScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             Text( // 나중에 노트에 적힌 문구로 바꾸기.
-                text = "생각에 빠졌음을 알아차릴 때\n화면을 터치하여 돌아오세요",
+                text = "생각에 빠졌음을 알아차렸을 때\n화면을 터치하여 돌아와 보세요",
                 color = Color(0xFFE0F7FA),
                 fontSize = 17.sp,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.Normal,
                 textAlign = TextAlign.Center
             )
         }

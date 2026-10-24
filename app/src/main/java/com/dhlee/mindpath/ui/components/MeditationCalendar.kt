@@ -27,6 +27,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,7 +43,17 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
-private val PointColor = Color(0xFF00B4DB)
+private val PointColor = Color(0xFF8B5CF6) // Violet 500 (기록 점 / 오늘 테두리)
+
+// 선택된 날짜 배경: DialStartButton과 같은 135° 그라데이션
+// (linearGradient 기본 start/end가 좌상단 -> 우하단이라 따로 지정 안 함)
+private val SelectedDayGradient = Brush.linearGradient(
+    colorStops = arrayOf(
+        0.0f to Color(0xFF6366F1),   // Indigo 500
+        0.6f to Color(0xFF8B5CF6),   // Violet 500
+        1.0f to Color(0xFFA855F7),   // Purple 500
+    )
+)
 
 @Composable
 fun MeditationCalendar(
@@ -143,7 +154,7 @@ private fun DayCell(
             .aspectRatio(1f)
             .padding(3.dp)
             .clip(CircleShape)
-            .background(if (isSelected) PointColor else Color.Transparent)
+            .then(if (isSelected) Modifier.background(SelectedDayGradient) else Modifier)
             .then(
                 if (isToday && !isSelected) Modifier.border(1.dp, PointColor, CircleShape)
                 else Modifier

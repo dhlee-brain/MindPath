@@ -18,7 +18,7 @@ val AppFont = FontFamily(
     Font(R.font.notosanskr_normal, FontWeight.Normal),
     Font(R.font.notosanskr_medium, FontWeight.Medium),
     Font(R.font.notosanskr_bold, FontWeight.Bold),
-    Font(R.font.notosanskr_semibold, FontWeight.Bold),
+    Font(R.font.notosanskr_semibold, FontWeight.SemiBold),
 )
 
 private fun TextStyle.app() = copy(fontFamily = AppFont)
