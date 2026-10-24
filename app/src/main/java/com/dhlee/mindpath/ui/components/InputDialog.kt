@@ -16,29 +16,35 @@ val TextPrimaryColor = Color.White.copy(alpha = 0.9f)
 val TextSecondaryColor = Color.LightGray
 
 // ---------------------------------------------------------
-// 다이얼로그 (1): 백 버튼/제스처 시 뜨는 [중도 종료 확인 창]
+// 다이얼로그 (1): 백 버튼/제스처 시 뜨는 [마치기 + 소감 창]
+// 시간 모드 중도 종료 / 자유 모드 종료 모두 이 창 하나로 처리 (확인 + 소감을 한 번에)
 // ---------------------------------------------------------
 @Composable
-fun ExitMeditationDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+fun FinishMeditationDialog(
+    feeling: String,
+    onFeelingChange: (String) -> Unit,
+    onFinish: () -> Unit,
+    onContinue: () -> Unit,
 ) {
     AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text("명상을 종료하시겠어요?", color = TextPrimaryColor)
-        },
+        onDismissRequest = onContinue, // 다이얼로그 위에서 한 번 더 뒤로가기 = 계속하기
+        properties = DialogProperties(dismissOnClickOutside = false),
+        title = { Text("세션을 종료할까요?", color = TextPrimaryColor) },
         text = {
-            Text("지금 종료해도 알아차림 기록은 저장됩니다.", color = TextSecondaryColor)
+            FeelingInputContent(
+                feeling = feeling,
+                onFeelingChange = onFeelingChange,
+                enabled = true,
+            )
         },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("확인", color = Color(0xFF64FFDA)) // 민트색 포인트 컬러
+            TextButton(onClick = onFinish) {
+                Text("마치기", color = Color(0xFF64FFDA)) // 민트색 포인트 컬러
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("취소", color = TextSecondaryColor)
+            TextButton(onClick = onContinue) {
+                Text("계속하기", color = TextSecondaryColor)
             }
         },
         containerColor = DialogBgColor
@@ -53,8 +59,9 @@ fun FeelingInputDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
     enabled: Boolean,
+    initialFeeling: String = "", // 마치기 창에서 쓰던 중에 타이머가 끝난 경우, 쓰던 내용을 이어받기 위함
 ) {
-    var feeling by remember { mutableStateOf("") }
+    var feeling by remember { mutableStateOf(initialFeeling) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -122,7 +129,7 @@ private fun FeelingInputContent(
     minLines: Int = 5,
 ) {
     Column(modifier = modifier) {
-        Text("지금의 감각이나 감정을 짧게 남겨보세요.", color = TextSecondaryColor)
+        Text("지금의 느낌이나 감정을 짧게 남겨보세요.", color = TextSecondaryColor)
         Spacer(modifier = Modifier.height(16.dp))
         TextField(
             enabled = enabled,

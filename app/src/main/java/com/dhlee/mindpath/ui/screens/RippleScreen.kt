@@ -48,7 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.dhlee.mindpath.ui.components.ExitMeditationDialog
+import com.dhlee.mindpath.ui.components.FinishMeditationDialog
 import com.dhlee.mindpath.ui.components.FeelingInputDialog
 import com.dhlee.mindpath.ui.components.MeditationTimerBar
 import com.dhlee.mindpath.viewmodel.MeditationViewModel
@@ -77,6 +77,8 @@ fun RippleScreen(
     val touchCount by meditationViewModel.currentTouchCount.collectAsState()
 
     var showExitDialog by remember { mutableStateOf(false) }
+    // 마치기 창에 쓰던 소감 (창을 닫았다 다시 열거나, 쓰는 도중 타이머가 끝나도 내용 유지)
+    var feelingDraft by remember { mutableStateOf("") }
     var showFeelingDialog by remember { mutableStateOf(false) }
 
     val isBowlMuted by settingsViewModel.isBowlMuted.collectAsState()
@@ -141,23 +143,28 @@ fun RippleScreen(
         showExitDialog = true
     }
 
+    // 시간 모드 중도 종료 / 자유 모드 종료 모두 "마치기 + 소감" 창 하나로 처리
     if (showExitDialog) {
-        ExitMeditationDialog(
-            onConfirm = {
+        FinishMeditationDialog(
+            feeling = feelingDraft,
+            onFeelingChange = { feelingDraft = it },
+            onFinish = {
                 showExitDialog = false
+                val feeling = feelingDraft.takeIf { it.isNotBlank() } // 비워두고 마치면 소감 없음으로 저장
                 if (sessionMode == SessionMode.TIMED) {
                     timerViewModel.stopTimer() // 타이머 중지
-                    meditationViewModel.finishMeditation(null, false, totalTime - timeLeft) // 중도 종료, DB 저장
+                    // 정한 시간을 다 채우지 않았으므로 isCompleted = false (중도 종료)
+                    meditationViewModel.finishMeditation(feeling, false, totalTime - timeLeft)
                 } else {
-                    // 자유 모드는 타이머가 안 돌았으니 totalTime - timeLeft가 항상 0이라 쓸 수 없음
+                    // 자유 모드는 원래 끝나는 시간이 없으니 직접 마치는 것이 정상 완료
                     // completedDurationSeconds를 null로 넘기면 '지금 이 순간'을 종료 시각으로 써서
                     // 시작부터 실제로 흐른 시간이 그대로 기록됨
-                    meditationViewModel.finishMeditation(null, false, null)
+                    meditationViewModel.finishMeditation(feeling, true, null)
                 }
                 onNavigateBack()// 메인으로 돌아가기
             },
-            onDismiss = {
-                showExitDialog = false // 창만 닫고 명상 계속
+            onContinue = {
+                showExitDialog = false // 창만 닫고 명상 계속 (쓰던 소감은 feelingDraft에 남아 있음)
             }
         )
     }
@@ -165,6 +172,8 @@ fun RippleScreen(
     // 2-2. 타이머가 시간이 다 되어 종료되었을 때의 종료
     LaunchedEffect(Unit) {
         timerViewModel.timerFinishEvent.collect {
+            // 마치기 창을 띄워둔 채 시간이 다 된 경우: 그 창은 닫고 정상 완료 소감 창으로 넘어감
+            showExitDialog = false
             showFeelingDialog = true
             // 앱이 백그라운드 상태(예: 통화 중)라면 소리를 내지 않음
             if (isAppInForeground) {
@@ -187,6 +196,7 @@ fun RippleScreen(
                 onNavigateBack()
             },
             enabled = true,
+            initialFeeling = feelingDraft, // 마치기 창에 쓰던 내용 이어받기
         )
     }
 
