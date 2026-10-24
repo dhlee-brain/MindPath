@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dhlee.mindpath.ui.components.MeditationCalendar
@@ -95,8 +96,9 @@ fun RecordScreen(
             item(key = "title") {
                 Text(
                     text = "기록 모아보기",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.titleLarge
+                    modifier = Modifier.padding(top = 8.dp, bottom = 16.dp, start = 16.dp, end = 0.dp),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
 
@@ -105,7 +107,7 @@ fun RecordScreen(
                     totalMillis = totalMillis,
                     totalDays = totalDays
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(6.dp))
             }
 
             item(key = "calendar") {

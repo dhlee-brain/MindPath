@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
@@ -77,11 +78,15 @@ fun SessionItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "세션 ${index + 1} - $formattedTime",
-                    color = Color.Black,
-                    style = MaterialTheme.typography.titleMedium,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "세션 ${index + 1} - $formattedTime",
+                        color = Color.Black,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    SessionModeTag(isFreeMode = session.isFreeMode)
+                }
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = if (isExpanded) "접기" else "펼치기",
@@ -99,6 +104,24 @@ fun SessionItem(
             }
         }
     }
+}
+
+// 세션 제목 옆에 붙는 "시간 모드 / 자유 모드" 작은 태그
+// 시간 모드: Indigo 500 / 자유 모드: Orange 600 — 둘 다 같은 색의 연한 배경 위에 진한 글자
+@Composable
+private fun SessionModeTag(isFreeMode: Boolean) {
+    val tagColor = if (isFreeMode) Color(0xFFEA580C) else Color(0xFF6366F1)
+
+    Text(
+        text = if (isFreeMode) "자유 모드" else "시간 모드",
+        color = tagColor,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(tagColor.copy(alpha = 0.1f))
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+    )
 }
 
 @Composable

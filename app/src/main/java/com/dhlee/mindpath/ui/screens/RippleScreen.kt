@@ -159,7 +159,7 @@ fun RippleScreen(
                     // 자유 모드는 원래 끝나는 시간이 없으니 직접 마치는 것이 정상 완료
                     // completedDurationSeconds를 null로 넘기면 '지금 이 순간'을 종료 시각으로 써서
                     // 시작부터 실제로 흐른 시간이 그대로 기록됨
-                    meditationViewModel.finishMeditation(feeling, true, null)
+                    meditationViewModel.finishMeditation(feeling, true, null, isFreeMode = true)
                 }
                 onNavigateBack()// 메인으로 돌아가기
             },
