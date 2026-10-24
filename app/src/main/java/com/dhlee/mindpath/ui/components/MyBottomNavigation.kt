@@ -3,6 +3,7 @@ package com.dhlee.mindpath.ui.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -40,6 +41,17 @@ fun MyBottomNavigation(currentTab: String, onTabSelected: (String) -> Unit) {
             ),
             icon = { Icon(Icons.Default.DateRange, contentDescription = "기록") },
             label = { Text("기록") }
+        )
+
+        // 설정(Settings) 탭
+        NavigationBarItem(
+            selected = currentTab == "settings",
+            onClick = { onTabSelected("settings") },
+            colors = NavigationBarItemDefaults.colors(
+                indicatorColor = Color(0xFF6366F1).copy(alpha = 0.3f),
+            ),
+            icon = { Icon(Icons.Default.Settings, contentDescription = "설정") },
+            label = { Text("설정") }
         )
     }
 }

@@ -91,13 +91,13 @@ fun DialStartScreen(
         ) {
             // 2-1. 로고 + 앱 이름
             // 온보딩과 같은 천천히 회전하는 연꽃 로고
-            RotatingPetals(size = 48.dp)
+            RotatingPetals(size = 36.dp)
 
             Spacer(modifier = Modifier.width(2.dp))
 
             Text(
                 text = "마음의 길",
-                fontSize = 30.sp,
+                style = MaterialTheme.typography.titleLarge, // 기록/설정 탭 제목과 같은 스타일
                 fontWeight = FontWeight.SemiBold
             )
 

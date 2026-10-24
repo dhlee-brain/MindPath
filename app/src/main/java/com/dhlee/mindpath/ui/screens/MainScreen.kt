@@ -64,6 +64,10 @@ fun MainScreen(
                 "record" -> RecordScreen(
                     modifier = Modifier.fillMaxSize()
                 )
+                "settings" -> SettingsScreen(
+                    onHelpClick = onHelpClick, // "사용법 다시 보기" -> 명상 화면 도움말과 같은 온보딩으로
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }

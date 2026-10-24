@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.dhlee.mindpath.MyApplication
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -15,17 +16,23 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     // 🌟 MyApplication(중앙 본부)에서 settingsRepository 가져오기
     private val repository = (application as MyApplication).settingsRepository
 
-    // 1. 종료 소리(싱잉볼) 음소거 상태 (UI에서 실시간 관찰)
-    val isBowlMuted: StateFlow<Boolean> = repository.isBowlMutedFlow.stateIn(
+    // 1. 종료 알림 방식 (설정 화면에서 실시간 관찰)
+    val endAlert: StateFlow<EndAlert> = repository.endAlertFlow.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = false
+        initialValue = EndAlert.SOUND
     )
 
-    // 2. 나중에 '설정 화면'에서 싱잉볼 토글 버튼을 누를 때 호출할 함수
-    fun toggleBowlMute() {
+    // 2. "지금 이 순간" 저장된 종료 알림 방식을 확실히 읽어옴
+    //    StateFlow는 DataStore를 읽기 전엔 initialValue(SOUND)를 주기 때문에,
+    //    알림을 울리는 그 순간 판단해야 하는 곳(RippleScreen 타이머 종료)에선 이걸 써야
+    //    "없음"으로 설정했는데 소리가 나는 문제를 막을 수 있음
+    suspend fun currentEndAlert(): EndAlert = repository.endAlertFlow.first()
+
+    // 3. 설정 화면에서 종료 알림 방식 선택
+    fun setEndAlert(alert: EndAlert) {
         viewModelScope.launch {
-            repository.saveBowlMuteSetting(!isBowlMuted.value)
+            repository.saveEndAlert(alert)
         }
     }
 

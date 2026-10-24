@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import com.dhlee.mindpath.viewmodel.EndAlert
 
 // 1. DataStore 싱글톤 인스턴스 생성 (앱 전체에서 공유할 설정 파일 이름)
 val Context.dataStore by preferencesDataStore(name = "app_settings")
@@ -15,7 +17,10 @@ class SettingsRepository(private val context: Context) {
 
     companion object {
         // 2. 저장할 설정들의 Key(이름표)를 각각 독립적으로 생성
-        val IS_BOWL_MUTED_KEY = booleanPreferencesKey("is_bowl_muted")   // 종료 소리 (설정 화면 제어용)
+        // [레거시] 1.0.x의 종료 소리 음소거 여부. 이제 END_ALERT_KEY로 대체됨
+        // 기존 사용자가 처음 1.1.0을 켰을 때 값을 이어받는 용도로만 읽음 (새로 쓰지 않음)
+        val IS_BOWL_MUTED_KEY = booleanPreferencesKey("is_bowl_muted")
+        val END_ALERT_KEY = stringPreferencesKey("end_alert")            // 종료 알림 방식 (EndAlert.name)
         val TOTAL_TIME_KEY = intPreferencesKey("total_time")             // 타이머 설정 시간
         val IS_ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed") // 온보딩 최초 완료 여부
         val IS_FREE_MODE_KEY = booleanPreferencesKey("is_free_mode")             // 마지막에 선택한 세션 모드 (시간/자유)
@@ -25,10 +30,13 @@ class SettingsRepository(private val context: Context) {
     // [ 읽기 (Read) - 상태 변화를 실시간 감지하는 Flow ]
     // ==========================================
 
-    // 1. 종료 소리(싱잉볼) 음소거 상태 (기본값: false - 소리 켜짐)
-    val isBowlMutedFlow: Flow<Boolean> = context.dataStore.data
+    // 1. 종료 알림 방식 (소리 / 진동 / 소리+진동 / 없음)
+    val endAlertFlow: Flow<EndAlert> = context.dataStore.data
         .map { preferences ->
-            preferences[IS_BOWL_MUTED_KEY] ?: false
+            // 저장된 이름이 지금 enum에 없으면(이름 변경/삭제 등) 크래시 대신 아래 기본값으로
+            preferences[END_ALERT_KEY]?.let { name -> EndAlert.entries.firstOrNull { it.name == name } }
+                // 아직 새 설정을 저장한 적 없는 기존 사용자: 예전 음소거 값으로 결정
+                ?: if (preferences[IS_BOWL_MUTED_KEY] == true) EndAlert.NONE else EndAlert.SOUND
         }
 
     // 2. 타이머 설정 시간 (기본값: 60초)
@@ -54,10 +62,11 @@ class SettingsRepository(private val context: Context) {
     // [ 쓰기 (Write) - 상태를 영구 저장하는 함수 ]
     // ==========================================
 
-    // 1. 종료 소리(싱잉볼) 음소거 켜기/끄기 저장 (나중에 설정 화면에서 사용)
-    suspend fun saveBowlMuteSetting(isMuted: Boolean) {
+    // 1. 종료 알림 방식 저장 (설정 화면)
+    suspend fun saveEndAlert(alert: EndAlert) {
         context.dataStore.edit { preferences ->
-            preferences[IS_BOWL_MUTED_KEY] = isMuted
+            preferences[END_ALERT_KEY] = alert.name
+            preferences.remove(IS_BOWL_MUTED_KEY) // 새 설정으로 옮겨졌으니 레거시 값은 정리
         }
     }
 

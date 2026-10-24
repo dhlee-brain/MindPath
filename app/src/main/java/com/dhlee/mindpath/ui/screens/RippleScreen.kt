@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dhlee.mindpath.ui.components.FinishMeditationDialog
+import com.dhlee.mindpath.ui.components.vibrateEndAlert
 import com.dhlee.mindpath.ui.components.FeelingInputDialog
 import com.dhlee.mindpath.ui.components.MeditationTimerBar
 import com.dhlee.mindpath.viewmodel.MeditationViewModel
@@ -81,7 +82,6 @@ fun RippleScreen(
     var feelingDraft by remember { mutableStateOf("") }
     var showFeelingDialog by remember { mutableStateOf(false) }
 
-    val isBowlMuted by settingsViewModel.isBowlMuted.collectAsState()
     val context = LocalContext.current
     val view = LocalView.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -120,12 +120,6 @@ fun RippleScreen(
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
-
-    // 🎵 종료 소리(싱잉볼) 실시간 볼륨 조절 (나중에 설정 창에서 바꿀 때 발동)
-    LaunchedEffect(isBowlMuted) {
-        val volume = if (isBowlMuted) 0f else 1f
-        bowlPlayer?.setVolume(volume, volume)
     }
 
     // 1. 타이머 시작
@@ -175,9 +169,16 @@ fun RippleScreen(
             // 마치기 창을 띄워둔 채 시간이 다 된 경우: 그 창은 닫고 정상 완료 소감 창으로 넘어감
             showExitDialog = false
             showFeelingDialog = true
+
+            // 설정 화면의 종료 알림 방식 (끝나는 순간의 저장값을 직접 읽음)
+            val endAlert = settingsViewModel.currentEndAlert()
             // 앱이 백그라운드 상태(예: 통화 중)라면 소리를 내지 않음
-            if (isAppInForeground) {
+            if (endAlert.hasSound && isAppInForeground) {
                 bowlPlayer?.start()
+            }
+            // 진동은 통화를 방해하지 않으므로 백그라운드여도 울림 (시스템이 막는 경우는 무시됨)
+            if (endAlert.hasVibration) {
+                vibrateEndAlert(context)
             }
         }
     }
